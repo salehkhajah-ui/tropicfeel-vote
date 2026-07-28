@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>لوحة الإدارة — مسابقة Tropicfeel Arabia</title>
+<meta name="robots" content="noindex">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+  :root { --ink:#101410; --paper:#f7f6f2; --accent:#c8f566; --muted:#7a7f76; --red:#d64545; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:'Tajawal',sans-serif; background:var(--paper); color:var(--ink); }
+  header { background:var(--ink); color:#fff; padding:20px; text-align:center; font-weight:800; letter-spacing:2px; }
+  header span { color:var(--accent); }
+  main { max-width:760px; margin:0 auto; padding:24px 16px 60px; }
+  .box { background:#fff; border-radius:14px; padding:18px; margin-bottom:18px; box-shadow:0 2px 8px rgba(0,0,0,.06); }
+  .box h2 { font-size:16px; margin-bottom:12px; }
+  input[type=password], input[type=url] { width:100%; padding:10px 12px; border:1.5px solid #ddd; border-radius:10px; font-family:inherit; font-size:14px; }
+  .btn { font-family:inherit; font-size:14px; font-weight:700; border:none; cursor:pointer; background:var(--ink); color:#fff; padding:10px 20px; border-radius:999px; margin-top:10px; }
+  .btn.lime { background:var(--accent); color:var(--ink); }
+  .drop { border:2px dashed #c5c9c0; border-radius:12px; padding:26px; text-align:center; color:var(--muted); cursor:pointer; font-size:14px; }
+  .drop.on { border-color:var(--ink); background:#f0f5e6; }
+  #status { font-size:13px; margin-top:10px; font-weight:700; min-height:18px; }
+  .item { display:flex; align-items:center; gap:12px; padding:8px 0; border-bottom:1px solid #eee; }
+  .item img { width:52px; height:64px; object-fit:cover; border-radius:8px; background:#eee; }
+  .item .c { font-weight:800; }
+  .item .v { color:var(--muted); font-size:13px; flex:1; }
+  .del { background:none; border:none; color:var(--red); font-family:inherit; font-weight:700; cursor:pointer; font-size:13px; }
+  .row2 { display:flex; gap:8px; }
+  .row2 input { flex:1; }
+  .row2 .btn { margin-top:0; }
+</style>
+</head>
+<body>
+<header>TROPICFEEL <span>ARABIA</span> — لوحة الإدارة</header>
+<main>
+  <div class="box" id="keyBox">
+    <h2>مفتاح الإدارة</h2>
+    <input type="password" id="key" placeholder="أدخل مفتاح الإدارة">
+    <button class="btn" onclick="saveKey()">دخول</button>
+    <div id="keyMsg" style="color:#d64545;font-size:13px;margin-top:8px"></div>
+  </div>
+
+  <div id="panel" style="display:none">
+    <div class="box">
+      <h2>رفع صور جديدة (من الجهاز)</h2>
+      <div class="drop" id="drop">اضغط هنا لاختيار الصور أو اسحبها وأفلتها<br><small>يمكن اختيار عدة صور دفعة واحدة — الترقيم تلقائي والضغط تلقائي</small></div>
+      <input type="file" id="file" accept="image/*" multiple style="display:none">
+      <div id="status"></div>
+    </div>
+    <div class="box">
+      <h2>إضافة صورة برابط مباشر</h2>
+      <div class="row2">
+        <input type="url" id="purl" placeholder="https://...">
+        <button class="btn lime" onclick="addUrl()">إضافة</button>
+      </div>
+    </div>
+    <div class="box">
+      <h2>الصور الحالية</h2>
+      <div id="list"></div>
+    </div>
+  </div>
+</main>
+<script>
+let KEY = localStorage.getItem('tf_admin_key') || '';
+const H = () => ({ 'x-admin-key': KEY });
+
+async function checkKey() {
+  if (!KEY) return false;
+  try { return (await (await fetch('/api/admin', { headers: H() })).json()).ok; } catch { return false; }
+}
+
+async function saveKey() {
+  KEY = document.getElementById('key').value.trim();
+  if (await checkKey()) {
+    localStorage.setItem('tf_admin_key', KEY);
+    show();
+  } else {
+    document.getElementById('keyMsg').textContent = 'المفتاح غير صحيح';
+  }
+}
+
+function show() {
+  document.getElementById('keyBox').style.display = 'none';
+  document.getElementById('panel').style.display = 'block';
+  loadList();
+}
+
+const drop = document.getElementById('drop');
+const file = document.getElementById('file');
+drop.onclick = () => file.click();
+drop.ondragover = e => { e.preventDefault(); drop.classList.add('on'); };
+drop.ondragleave = () => drop.classList.remove('on');
+drop.ondrop = e => { e.preventDefault(); drop.classList.remove('on'); upload(e.dataTransfer.files); };
+file.onchange = () => upload(file.files);
+
+// ضغط الصورة في المتصفح قبل الرفع (حد أقصى 1000px، جودة 80%)
+function compress(f) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      const max = 1000;
+      let w = img.width, h = img.height;
+      if (Math.max(w, h) > max) { const s = max / Math.max(w, h); w = Math.round(w * s); h = Math.round(h * s); }
+      const c = document.createElement('canvas');
+      c.width = w; c.height = h;
+      c.getContext('2d').drawImage(img, 0, 0, w, h);
+      resolve(c.toDataURL('image/jpeg', 0.8));
+    };
+    img.onerror = reject;
+    img.src = URL.createObjectURL(f);
+  });
+}
+
+async function upload(files) {
+  if (!files.length) return;
+  const st = document.getElementById('status');
+  st.style.color = '#101410';
+  let ok = 0;
+  const arr = [...files];
+  for (let i = 0; i < arr.length; i++) {
+    st.textContent = 'جاري الرفع ' + (i + 1) + ' من ' + arr.length + '...';
+    try {
+      const image = await compress(arr[i]);
+      const r = await fetch('/api/admin', { method: 'POST', headers: { ...H(), 'content-type': 'application/json' }, body: JSON.stringify({ image }) });
+      if (r.ok) ok++;
+    } catch {}
+  }
+  st.style.color = ok === arr.length ? '#3a7d1e' : '#d64545';
+  st.textContent = 'تمت إضافة ' + ok + ' من ' + arr.length + ' صورة' + (ok === arr.length ? ' ✓' : ' — أعد محاولة الباقي');
+  file.value = '';
+  loadList();
+}
+
+async function addUrl() {
+  const u = document.getElementById('purl').value.trim();
+  if (!u) return;
+  const r = await fetch('/api/admin', { method: 'POST', headers: { ...H(), 'content-type': 'application/json' }, body: JSON.stringify({ url: u }) });
+  if (r.ok) { document.getElementById('purl').value = ''; loadList(); }
+  else alert('فشلت الإضافة — تأكد من الرابط');
+}
+
+async function delPhoto(id, code) {
+  if (!confirm('حذف الصورة #' + code + '؟')) return;
+  await fetch('/api/admin?id=' + encodeURIComponent(id), { method: 'DELETE', headers: H() });
+  loadList();
+}
+
+async function loadList() {
+  const photos = await (await fetch('/api/data')).json();
+  const list = document.getElementById('list');
+  list.innerHTML = photos.length ? '' : '<div style="color:#7a7f76;font-size:14px">لا توجد صور</div>';
+  photos.forEach(p => {
+    const el = document.createElement('div');
+    el.className = 'item';
+    el.innerHTML = '<img src="' + p.url + '"><span class="c">#' + p.code + '</span><span class="v">' + p.votes + ' صوت</span>';
+    const b = document.createElement('button');
+    b.className = 'del'; b.textContent = 'حذف';
+    b.onclick = () => delPhoto(p.id, p.code);
+    el.appendChild(b);
+    list.appendChild(el);
+  });
+}
+
+checkKey().then(ok => { if (ok) show(); });
+</script>
+</body>
+</html>
