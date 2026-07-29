@@ -89,7 +89,8 @@
   --tile-gap: var(--sp-4);     /* grid gutter */
 
   /* ---------- Shape / rules ---------- */
-  --radius: 2px;               /* buttons only; images & containers are square */
+  --radius: 2px;               /* inputs only; images & containers are square */
+  --radius-pill: 999px;        /* actions & filter chips (verified against the live reference) */
   --hairline: 1px solid var(--rule);
 
   /* ---------- Motion — one pair, everywhere ---------- */
