@@ -9,6 +9,7 @@
 <link rel="preload" href="/assets/fonts/ibm-plex-sans-arabic-arabic-400-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/assets/fonts/ibm-plex-sans-arabic-arabic-700-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="/assets/tokens.css">
+<script>window.__data = fetch('/api/data').then((r) => r.json());</script>
 <style>
 /* ============ header ============ */
 .site-header {
@@ -734,8 +735,7 @@ lb.addEventListener('touchend', (e) => {
 async function load() {
   renderSkeletons();
   try {
-    const r = await fetch('/api/data');
-    photos = await r.json();
+    photos = await (window.__data || fetch('/api/data').then((r) => r.json()));
   } catch { photos = []; }
   renderGrid();
   renderRail();
