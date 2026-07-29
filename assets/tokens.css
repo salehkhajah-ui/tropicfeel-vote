@@ -95,6 +95,7 @@
   /* ---------- Motion — one pair, everywhere ---------- */
   --ease: cubic-bezier(0.4, 0, 0.2, 1);
   --dur: 200ms;
+  --dur-slow: 800ms; /* hero crossfade only */
 
   /* ---------- Fixed ratios ---------- */
   --photo-ratio: 4 / 5;
