@@ -1,43 +1,36 @@
-# Tropicfeel Arabia — موقع تصويت مسابقة الصور 📸
+# Smart Money — The Operating System for the Private Economy 💹
 
-موقع تصويت عام لمسابقة صور انستغرام [@tropicfeelar](https://instagram.com/tropicfeelar).
-عربي بالكامل (RTL)، بهوية Tropicfeel، ويعمل على Vercel مجاناً.
+**Smart Money** makes private businesses **discoverable, understandable, investable and collaborative** —
+the Bloomberg Terminal for private companies, starting with Kuwait and the GCC.
 
-## المميزات
+This is the product demonstration site: a full static web experience with a marketing narrative and an
+interactive demo built on a fictional dataset of 12 Kuwaiti/GCC companies.
 
-- صفحة عامة تعرض كل الصور المشاركة كبطاقات، كل صورة **برقم مشاركة فقط** (#001، #002…) بدون اسم المشارك
-- تصويت مفتوح لأي زائر بدون تسجيل دخول، ومسموح من أكثر من جهاز، وعدد الأصوات ظاهر للجميع تحت كل صورة (يتحدث تلقائياً كل 20 ثانية)
-- لوحة إدارة بسيطة على `/admin` محمية بمفتاح سري: اسحب عدة صور وأفلتها، والضغط والترقيم تلقائي
-- الموقع يبدأ بـ 3 صور تجريبية تلقائياً، وتُحذف من لوحة الإدارة عند إضافة الصور الحقيقية
+## Pages
 
-## بنية المشروع
+| Route | File | What it shows |
+|---|---|---|
+| `/` | `index.html` | The vision: the problem, mission, platform pillars, AI deal manufacturing, the 4-phase regulatory-safe roadmap, and the 4-stream business model |
+| `/companies` | `companies.html` | Company directory — search & filter by industry and intent signals, with verified vs self-reported financials and AI valuation ranges |
+| `/company?id=…` | `company.html` | A company's economic profile: identity, financial health, AI valuation with confidence & methodology, readiness scores, published opportunity signals, idle assets, and mapped relationships |
+| `/dashboard` | `dashboard.html` | The morning opportunity engine, viewed as Al-Deera Construction: AI-manufactured deals with approve/dismiss, capital allocation intelligence, benchmarks, and idle-asset listings |
+| `/graph` | `graph.html` | The interactive Economic Graph — a live force-directed map of trade, competition, and AI-manufactured matches |
 
-| الملف | الوظيفة |
-|---|---|
-| `index.html` | صفحة التصويت العامة |
-| `admin.html` | لوحة الإدارة (`/admin`) |
-| `api/data.js` | قائمة الصور مع عدد الأصوات |
-| `api/vote.js` | تسجيل صوت |
-| `api/admin.js` | إضافة/حذف الصور (بمفتاح الإدارة) |
-| `api/img/[id].js` | عرض الصور المرفوعة |
-| `api/_lib.js` | الاتصال بقاعدة البيانات (Upstash Redis) |
-| `vercel.json` | إعادة توجيه المسارات |
+Shared assets live in `assets/` (`style.css` design system, `data.js` demo dataset, `common.js` nav/footer).
 
-## النشر على Vercel
+## Core ideas encoded in the demo
 
-1. اربط هذا الريبو بمشروع في [Vercel](https://vercel.com) (Import Repository)
-2. من تبويب **Storage** في المشروع → أضف **Upstash for Redis** (خطة Free) واربطها بالمشروع
-3. أعد النشر (Deployments → ⋯ → Redeploy)
+- **Economic profiles** — every company gets the infrastructure of a public one
+- **Verified vs self-reported** metrics, clearly badged
+- **AI valuations** — always shown as ranges with confidence, method, and a decision-support disclaimer (never a certified appraisal)
+- **The Opportunity Engine** — the AI doesn't wait for deals; it *manufactures* them from idle assets and unmet needs
+- **Phased regulatory posture** — intelligence → signals → verified data rooms → transactions only via licensed/regulated partners
+- **Four revenue streams** — subscriptions, success fees, premium intelligence, and the financial services ecosystem
 
-## إضافة صور جديدة (كل ساعة من منشنات الستوري)
+## Deploy
 
-1. احفظ الصور من الستوري إلى جهازك (لقطة شاشة أو تنزيل)
-2. افتح `رابط-الموقع/admin` وأدخل مفتاح الإدارة
-3. اسحب الصور وأفلتها — تُرفع وتُرقّم تلقائياً وتظهر فوراً في صفحة التصويت
+Static site — deploys as-is on Vercel (`cleanUrls` enabled in `vercel.json`). No build step, no environment variables required for the demo pages.
 
-## الإعدادات (متغيرات البيئة في Vercel)
+> The previous Tropicfeel Arabia voting site is preserved at `/vote` (with its admin panel at `/admin` and serverless API under `api/`).
 
-| المتغير | الوصف |
-|---|---|
-| `ADMIN_KEY` | مفتاح لوحة الإدارة — الافتراضي `tropic-2026` (يُنصح بتغييره من Settings → Environment Variables) |
-| `KV_REST_API_URL` / `KV_REST_API_TOKEN` | تُضاف تلقائياً عند ربط Upstash |
+⚠️ All companies, figures, valuations, and synergy estimates on the site are fictional demo data.

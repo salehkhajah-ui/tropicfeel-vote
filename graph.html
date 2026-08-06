@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Economic Graph — Smart Money</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/style.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%232fd48a'/><text x='50' y='70' font-size='60' text-anchor='middle' font-family='monospace' font-weight='bold' fill='%2305261a'>S</text></svg>">
+</head>
+<body data-page="graph">
+
+<main class="wrap">
+  <div class="page-head">
+    <h1>The Economic Graph</h1>
+    <p>A living map of commerce. Nodes are companies (sized by revenue); lines are how value flows between them —
+      trade relationships, competition, and <span class="green">deals the AI has manufactured</span>. Click any company. Drag to rearrange.</p>
+  </div>
+
+  <div id="graph-shell">
+    <canvas id="graph-canvas"></canvas>
+    <div id="graph-panel"></div>
+  </div>
+
+  <div class="legend">
+    <span><i style="background:var(--blue)"></i>Trade (supplier / customer)</span>
+    <span><i style="background:var(--red)"></i>Competition</span>
+    <span><i style="background:var(--green)"></i>AI-manufactured match</span>
+    <span class="faint">· Node size = revenue · All demo data</span>
+  </div>
+</main>
+
+<script src="/assets/data.js"></script>
+<script src="/assets/common.js"></script>
+<script>
+(function () {
+  const canvas = document.getElementById("graph-canvas");
+  const shell = document.getElementById("graph-shell");
+  const panel = document.getElementById("graph-panel");
+  const ctx = canvas.getContext("2d");
+  const focusId = new URLSearchParams(location.search).get("focus");
+
+  let W = 0, H = 0, DPR = 1;
+  function resize() {
+    DPR = window.devicePixelRatio || 1;
+    W = shell.clientWidth; H = canvas.clientHeight || 640;
+    canvas.width = W * DPR; canvas.height = H * DPR;
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  }
+  window.addEventListener("resize", resize);
+  resize();
+
+  const maxRev = Math.max(...SM.companies.map(c => c.financials.revenue));
+  const nodes = SM.companies.map((c, i) => ({
+    c, x: W / 2 + Math.cos(i / SM.companies.length * 2 * Math.PI) * 200,
+    y: H / 2 + Math.sin(i / SM.companies.length * 2 * Math.PI) * 180,
+    vx: 0, vy: 0,
+    r: 14 + Math.sqrt(c.financials.revenue / maxRev) * 22
+  }));
+  const byId = (id) => nodes.find(n => n.c.id === id);
+
+  const edges = [];
+  SM.companies.forEach(c => {
+    c.relationships.suppliers.forEach(s => edges.push({ a: byId(c.id), b: byId(s), type: "trade" }));
+    c.relationships.customers.forEach(s => edges.push({ a: byId(c.id), b: byId(s), type: "trade" }));
+    c.relationships.competitors.forEach(s => edges.push({ a: byId(c.id), b: byId(s), type: "comp" }));
+  });
+  SM.matches.forEach(m => edges.push({ a: byId(m.a), b: byId(m.b), type: "match", m }));
+  // dedupe reciprocal trade edges
+  const seen = new Set();
+  const uniq = edges.filter(e => {
+    const k = e.type + ":" + [e.a.c.id, e.b.c.id].sort().join("-");
+    if (seen.has(k)) return false; seen.add(k); return true;
+  });
+
+  let selected = focusId ? byId(focusId) : null;
+  let dragging = null, hovering = null, t = 0;
+
+  function step() {
+    // pairwise repulsion + spring on edges + centering
+    for (let i = 0; i < nodes.length; i++) {
+      const a = nodes[i];
+      for (let j = i + 1; j < nodes.length; j++) {
+        const b = nodes[j];
+        let dx = a.x - b.x, dy = a.y - b.y;
+        let d2 = dx * dx + dy * dy || 1, d = Math.sqrt(d2);
+        const rep = 5200 / d2;
+        dx /= d; dy /= d;
+        a.vx += dx * rep; a.vy += dy * rep;
+        b.vx -= dx * rep; b.vy -= dy * rep;
+      }
+      a.vx += (W / 2 - a.x) * 0.0015;
+      a.vy += (H / 2 - a.y) * 0.0022;
+    }
+    uniq.forEach(e => {
+      let dx = e.b.x - e.a.x, dy = e.b.y - e.a.y;
+      const d = Math.sqrt(dx * dx + dy * dy) || 1;
+      const want = e.type === "match" ? 200 : 150;
+      const f = (d - want) * 0.0022;
+      dx /= d; dy /= d;
+      e.a.vx += dx * f * d * 0.02; e.a.vy += dy * f * d * 0.02;
+      e.b.vx -= dx * f * d * 0.02; e.b.vy -= dy * f * d * 0.02;
+    });
+    nodes.forEach(n => {
+      if (n === dragging) { n.vx = n.vy = 0; return; }
+      n.vx *= 0.85; n.vy *= 0.85;
+      n.x += n.vx; n.y += n.vy;
+      n.x = Math.max(n.r + 6, Math.min(W - n.r - 6, n.x));
+      n.y = Math.max(n.r + 6, Math.min(H - n.r - 6, n.y));
+    });
+  }
+
+  function draw() {
+    t += 0.02;
+    ctx.clearRect(0, 0, W, H);
+
+    uniq.forEach(e => {
+      const dim = selected && e.a !== selected && e.b !== selected;
+      ctx.beginPath();
+      ctx.moveTo(e.a.x, e.a.y); ctx.lineTo(e.b.x, e.b.y);
+      if (e.type === "trade") { ctx.strokeStyle = dim ? "rgba(90,162,255,.10)" : "rgba(90,162,255,.38)"; ctx.setLineDash([]); ctx.lineWidth = 1.4; }
+      else if (e.type === "comp") { ctx.strokeStyle = dim ? "rgba(240,100,124,.08)" : "rgba(240,100,124,.35)"; ctx.setLineDash([4, 5]); ctx.lineWidth = 1.2; }
+      else { ctx.strokeStyle = dim ? "rgba(47,212,138,.10)" : "rgba(47,212,138,.55)"; ctx.setLineDash([7, 6]); ctx.lineDashOffset = -t * 22; ctx.lineWidth = 1.8; }
+      ctx.stroke();
+      ctx.setLineDash([]);
+    });
+
+    nodes.forEach(n => {
+      const dim = selected && n !== selected &&
+        !uniq.some(e => e.a === selected && e.b === n || e.b === selected && e.a === n);
+      ctx.globalAlpha = dim ? 0.28 : 1;
+      // glow for selected
+      if (n === selected) {
+        ctx.beginPath(); ctx.arc(n.x, n.y, n.r + 9 + Math.sin(t * 2.4) * 2.5, 0, 7);
+        ctx.strokeStyle = "rgba(47,212,138,.6)"; ctx.lineWidth = 2; ctx.stroke();
+      }
+      ctx.beginPath(); ctx.arc(n.x, n.y, n.r, 0, 7);
+      ctx.fillStyle = n.c.color; ctx.fill();
+      ctx.strokeStyle = "rgba(10,15,28,.9)"; ctx.lineWidth = 2.5; ctx.stroke();
+      ctx.fillStyle = "#0a0f1c";
+      ctx.font = "700 " + Math.max(11, n.r * 0.55) + "px 'Space Grotesk', sans-serif";
+      ctx.textAlign = "center"; ctx.textBaseline = "middle";
+      ctx.fillText(n.c.short, n.x, n.y + 1);
+      // label
+      ctx.fillStyle = dim ? "rgba(154,168,199,.4)" : "#9aa8c7";
+      ctx.font = "500 11px Inter, sans-serif";
+      ctx.fillText(n.c.name, n.x, n.y + n.r + 14);
+      ctx.globalAlpha = 1;
+    });
+  }
+
+  function loop() { step(); draw(); requestAnimationFrame(loop); }
+  loop();
+
+  function nodeAt(x, y) {
+    return nodes.find(n => (n.x - x) ** 2 + (n.y - y) ** 2 <= (n.r + 4) ** 2);
+  }
+  function pos(ev) {
+    const r = canvas.getBoundingClientRect();
+    const p = ev.touches ? ev.touches[0] : ev;
+    return { x: p.clientX - r.left, y: p.clientY - r.top };
+  }
+
+  function showPanel(n) {
+    const c = n.c;
+    const conn = uniq.filter(e => e.a === n || e.b === n);
+    panel.innerHTML = `
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+        <span class="logo-tile" style="width:36px;height:36px;font-size:13px;border-radius:9px;background:${c.color}">${c.short}</span>
+        <div>
+          <div style="font-weight:700;font-family:var(--font-display)">${c.name}</div>
+          <div class="faint" style="font-size:12px">${c.industry} · ${c.location.split(",")[0]}</div>
+        </div>
+      </div>
+      <div class="kv" style="font-size:13px">
+        <dt>Revenue</dt><dd>${SM.fmtKD(c.financials.revenue)}</dd>
+        <dt>AI valuation</dt><dd>${SM.fmtKD(c.valuation.low)}–${SM.fmtKD(c.valuation.high)}</dd>
+        <dt>Connections</dt><dd>${conn.length}</dd>
+        <dt>Opportunity</dt><dd class="green">${c.scores.opportunity}/100</dd>
+      </div>
+      <div class="tag-row" style="margin-top:10px">${c.signals.map(s => `<span class="chip green" style="font-size:11px">${s}</span>`).join("")}</div>
+      <a class="btn btn-primary btn-sm" style="margin-top:14px;width:100%;justify-content:center" href="/company?id=${c.id}">Open economic profile →</a>`;
+    panel.classList.add("open");
+  }
+  if (selected) showPanel(selected);
+
+  let moved = false;
+  canvas.addEventListener("pointerdown", ev => {
+    const p = pos(ev); const n = nodeAt(p.x, p.y);
+    moved = false;
+    if (n) { dragging = n; canvas.setPointerCapture(ev.pointerId); }
+  });
+  canvas.addEventListener("pointermove", ev => {
+    const p = pos(ev);
+    if (dragging) { dragging.x = p.x; dragging.y = p.y; moved = true; }
+    else { hovering = nodeAt(p.x, p.y); canvas.style.cursor = hovering ? "pointer" : "grab"; }
+  });
+  canvas.addEventListener("pointerup", ev => {
+    const p = pos(ev); const n = nodeAt(p.x, p.y);
+    if (!moved && n) { selected = n; showPanel(n); }
+    else if (!moved && !n) { selected = null; panel.classList.remove("open"); }
+    dragging = null;
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Company Directory — Smart Money</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/style.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%232fd48a'/><text x='50' y='70' font-size='60' text-anchor='middle' font-family='monospace' font-weight='bold' fill='%2305261a'>S</text></svg>">
+</head>
+<body data-page="companies">
+
+<main class="wrap">
+  <div class="page-head">
+    <h1>Company Directory</h1>
+    <p>Every private company, discoverable. Filter by industry, market, or intent — each profile carries verified financial health, an AI valuation range, and live opportunity signals.</p>
+  </div>
+
+  <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:22px">
+    <input type="search" id="q" placeholder="Search companies…" style="flex:1;min-width:220px">
+    <select id="f-industry"><option value="">All industries</option></select>
+    <select id="f-signal">
+      <option value="">All signals</option>
+      <option>Open to investors</option>
+      <option>Open to acquisition</option>
+      <option>Open to partnerships</option>
+      <option>Selling</option>
+      <option>Expanding</option>
+      <option>Looking for</option>
+    </select>
+  </div>
+
+  <div class="card" style="padding:0">
+    <div class="table-scroll">
+      <table class="data" id="tbl">
+        <thead>
+          <tr>
+            <th>Company</th>
+            <th>Industry</th>
+            <th>Revenue</th>
+            <th>AI Valuation Range</th>
+            <th>Opportunity Score</th>
+            <th>Signals</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+  <p class="faint" style="margin-top:16px;font-size:13px">
+    Valuation ranges are AI model estimates for decision support — not certified appraisals.
+    All companies shown are fictional demo data.
+  </p>
+</main>
+
+<script src="/assets/data.js"></script>
+<script src="/assets/common.js"></script>
+<script>
+  const tbody = document.querySelector("#tbl tbody");
+  const q = document.getElementById("q");
+  const fInd = document.getElementById("f-industry");
+  const fSig = document.getElementById("f-signal");
+
+  [...new Set(SM.companies.map(c => c.industry))].sort().forEach(i => {
+    const o = document.createElement("option"); o.textContent = i; fInd.append(o);
+  });
+
+  function scoreColor(s) { return s >= 75 ? "green" : s >= 55 ? "gold" : "red"; }
+
+  function render() {
+    const term = q.value.trim().toLowerCase();
+    const ind = fInd.value, sig = fSig.value.toLowerCase();
+    tbody.innerHTML = "";
+    SM.companies
+      .filter(c => (!term || (c.name + c.location + c.about).toLowerCase().includes(term)))
+      .filter(c => (!ind || c.industry === ind))
+      .filter(c => (!sig || c.signals.some(s => s.toLowerCase().includes(sig))))
+      .sort((a, b) => b.scores.opportunity - a.scores.opportunity)
+      .forEach(c => {
+        const tr = document.createElement("tr");
+        tr.style.cursor = "pointer";
+        tr.onclick = () => location.href = "/company?id=" + c.id;
+        tr.innerHTML = `
+          <td>
+            <div style="display:flex;align-items:center;gap:12px">
+              <span class="logo-tile" style="width:38px;height:38px;border-radius:10px;font-size:14px;background:${c.color}">${c.short}</span>
+              <div>
+                <div style="font-weight:600">${c.name}</div>
+                <div class="faint" style="font-size:12px">${c.location}</div>
+              </div>
+            </div>
+          </td>
+          <td><span class="chip">${c.industry}</span></td>
+          <td class="mono">${SM.fmtKD(c.financials.revenue)}
+            ${c.financials.verified.includes("revenue") ? '<span class="badge-verified">VERIFIED</span>' : '<span class="badge-self">SELF-REP</span>'}</td>
+          <td class="mono">${SM.fmtKD(c.valuation.low)} – ${SM.fmtKD(c.valuation.high)}</td>
+          <td>
+            <div style="display:flex;align-items:center;gap:10px;min-width:120px">
+              <div class="meter ${scoreColor(c.scores.opportunity)}" style="flex:1"><i style="width:${c.scores.opportunity}%"></i></div>
+              <span class="mono ${scoreColor(c.scores.opportunity)}" style="font-size:13px">${c.scores.opportunity}</span>
+            </div>
+          </td>
+          <td>
+            <div class="tag-row">${c.signals.slice(0, 2).map(s => `<span class="chip blue">${s}</span>`).join("")}</div>
+          </td>`;
+        tbody.append(tr);
+      });
+    if (!tbody.children.length) {
+      tbody.innerHTML = `<tr><td colspan="6" class="dim" style="text-align:center;padding:32px">No companies match your filters.</td></tr>`;
+    }
+  }
+
+  q.oninput = render; fInd.onchange = render; fSig.onchange = render;
+  render();
+</script>
+</body>
+</html>

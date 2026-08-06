@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Opportunity Dashboard — Smart Money</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/style.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%232fd48a'/><text x='50' y='70' font-size='60' text-anchor='middle' font-family='monospace' font-weight='bold' fill='%2305261a'>S</text></svg>">
+</head>
+<body data-page="dashboard">
+
+<main class="wrap" id="main"></main>
+
+<script src="/assets/data.js"></script>
+<script src="/assets/common.js"></script>
+<script>
+  // The demo signs you in as Al-Deera Construction — the 800K KD company from the pitch.
+  const me = SM.byId("aldeera");
+  const today = new Date().toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+
+  const myMatches = SM.matches.filter(m => m.a === me.id || m.b === me.id);
+  const marketMatches = SM.matches.filter(m => m.a !== me.id && m.b !== me.id);
+
+  const toneBg = { gold: "var(--gold-soft)", blue: "var(--blue-soft)", green: "var(--green-soft)", violet: "var(--violet-soft)" };
+
+  const oppCard = (m, mine) => {
+    const a = SM.byId(m.a), b = SM.byId(m.b);
+    const other = mine ? SM.byId(m.a === me.id ? m.b : m.a) : null;
+    return `
+    <div class="opp">
+      <div class="icon" style="background:${mine ? "var(--green-soft)" : "var(--blue-soft)"}">${m.icon}</div>
+      <div class="body">
+        <div class="title">
+          ${mine
+            ? `${m.headline} — with <a class="blue" href="/company?id=${other.id}">${other.name}</a>`
+            : `<a class="blue" href="/company?id=${a.id}">${a.name}</a> <span class="arrow">↔</span> <a class="blue" href="/company?id=${b.id}">${b.name}</a>`}
+        </div>
+        <div class="desc">${m.detail}</div>
+        <div class="value"><span class="green">${SM.fmtKD(m.value)}</span> <span class="dim">${m.valueLabel}</span>
+          · <span class="gold">${m.confidence}% confidence</span> · <span class="chip" style="font-size:11px">${m.type}</span></div>
+        <div class="actions">
+          <button class="btn btn-primary btn-sm" onclick="this.textContent='✓ Approved — introduction requested';this.disabled=true">Approve introduction</button>
+          <button class="btn btn-ghost btn-sm" onclick="this.closest('.opp').style.opacity=.35;this.textContent='Dismissed';this.disabled=true">Dismiss</button>
+        </div>
+      </div>
+    </div>`;
+  };
+
+  document.getElementById("main").innerHTML = `
+  <div class="page-head" style="display:flex;justify-content:space-between;align-items:flex-end;gap:20px;flex-wrap:wrap">
+    <div>
+      <div class="panel-title" style="margin-bottom:8px">${today} · Signed in as demo company</div>
+      <h1 style="display:flex;align-items:center;gap:14px">
+        <span class="logo-tile" style="width:46px;height:46px;font-size:18px;border-radius:12px;background:${me.color}">${me.short}</span>
+        ${me.name}
+      </h1>
+      <p style="margin-top:10px">Good morning. The economic graph found
+        <b class="green">${myMatches.length + SM.insights.length + marketMatches.length} new opportunities</b> overnight.
+        Not notifications — money.</p>
+    </div>
+    <div style="display:flex;gap:12px;flex-wrap:wrap">
+      <div class="stat" style="min-width:150px"><div class="label">Opportunity score</div>
+        <div class="value green">${me.scores.opportunity}<span class="dim" style="font-size:15px">/100</span></div>
+        <div class="sub">▲ 4 vs last week</div></div>
+      <div class="stat" style="min-width:150px"><div class="label">Est. value on table</div>
+        <div class="value gold">${SM.fmtKD(myMatches.reduce((n, m) => n + m.value, 0) + 436000)}</div>
+        <div class="sub">across ${myMatches.length + SM.insights.length} items</div></div>
+    </div>
+  </div>
+
+  <div class="split">
+    <div><!-- LEFT: opportunity feed -->
+      <div class="panel-title">Deals manufactured for you</div>
+      ${myMatches.map(m => oppCard(m, true)).join("")}
+
+      <div class="panel-title" style="margin-top:30px">Capital allocation intelligence</div>
+      ${SM.insights.map(i => `
+        <div class="opp">
+          <div class="icon" style="background:${toneBg[i.tone]}">${i.icon}</div>
+          <div class="body">
+            <div class="title">${i.title}</div>
+            <div class="desc">${i.body}</div>
+            <div class="value"><span class="${i.tone}">${i.impact}</span></div>
+            <div class="actions">
+              <button class="btn btn-ghost btn-sm" onclick="this.textContent='✓ Added to action plan';this.disabled=true">Add to action plan</button>
+            </div>
+          </div>
+        </div>`).join("")}
+
+      <div class="panel-title" style="margin-top:30px">Elsewhere in the graph</div>
+      ${marketMatches.slice(0, 3).map(m => oppCard(m, false)).join("")}
+    </div>
+
+    <div><!-- RIGHT: company intelligence rail -->
+      <div class="card">
+        <div class="panel-title">Your AI valuation</div>
+        <div style="font-family:var(--font-display);font-size:24px;font-weight:700">
+          ${SM.fmtKD(me.valuation.low)} – ${SM.fmtKD(me.valuation.high)}</div>
+        <div class="dim" style="font-size:13px;margin-top:4px">Confidence: ${me.valuation.confidence} ·
+          <a class="blue" href="/company?id=${me.id}">full profile →</a></div>
+        <hr class="hr">
+        <p class="faint" style="font-size:12px">Verify your EBITDA and debt figures to tighten this range by an estimated 22%.</p>
+        <button class="btn btn-primary btn-sm" style="margin-top:10px" onclick="this.textContent='✓ Verification started';this.disabled=true">Verify financials</button>
+      </div>
+
+      <div class="card">
+        <div class="panel-title">Benchmark — Kuwait construction</div>
+        <div class="kv">
+          <dt>EBITDA margin</dt><dd class="green">${me.financials.margin}% <span class="faint">(median 14%)</span></dd>
+          <dt>Receivable days</dt><dd class="red">${me.financials.receivableDays} <span class="faint">(median 64)</span></dd>
+          <dt>Revenue growth</dt><dd class="gold">+${me.financials.growth}% <span class="faint">(median +8%)</span></dd>
+          <dt>Top-client share</dt><dd class="red">47% <span class="faint">(median 28%)</span></dd>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="panel-title">Idle assets detected</div>
+        ${me.idleAssets.map(a => `<p class="dim" style="font-size:13.5px;padding:5px 0">🧩 ${a}</p>`).join("")}
+        <button class="btn btn-ghost btn-sm" style="margin-top:10px" onclick="this.textContent='✓ Listed on the asset exchange';this.disabled=true">List idle capacity</button>
+      </div>
+
+      <div class="card">
+        <div class="panel-title">Your published signals</div>
+        ${me.signals.map(sg => `<p style="font-size:14px;padding:4px 0">📣 ${sg}</p>`).join("")}
+        <button class="btn btn-ghost btn-sm" style="margin-top:10px" onclick="this.textContent='✓ Signal editor coming in demo v2';this.disabled=true">Publish new signal</button>
+      </div>
+
+      <div class="card" style="background:linear-gradient(160deg,var(--panel),#12251c)">
+        <div class="panel-title">Ecosystem introductions</div>
+        <p class="dim" style="font-size:13.5px">2 banks and 1 family office asked to be introduced to companies with your profile this month.</p>
+        <button class="btn btn-primary btn-sm" style="margin-top:12px" onclick="this.textContent='✓ Interest registered';this.disabled=true">Review interest</button>
+      </div>
+    </div>
+  </div>
+
+  <p class="faint" style="margin-top:34px;font-size:13px">
+    Demo environment: you are viewing the platform as ${me.name}, a fictional company.
+    Synergy values and insights are illustrative AI model outputs.
+  </p>`;
+</script>
+</body>
+</html>
