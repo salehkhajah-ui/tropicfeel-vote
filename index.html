@@ -1,103 +1,309 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>مسابقة صور Tropicfeel Arabia — صوّت الآن</title>
+<title>Smart Money — The Operating System for the Private Economy</title>
+<meta name="description" content="Smart Money makes private businesses discoverable, understandable, investable and collaborative. AI valuations, an opportunity engine, and the economic graph of the private economy — starting in Kuwait and the GCC.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
-<style>
-  :root { --ink:#101410; --paper:#f7f6f2; --card:#ffffff; --accent:#c8f566; --muted:#7a7f76; }
-  * { box-sizing:border-box; margin:0; padding:0; }
-  body { font-family:'Tajawal',sans-serif; background:var(--paper); color:var(--ink); }
-  header { background:var(--ink); color:#fff; padding:34px 20px 30px; text-align:center; }
-  .logo { font-weight:800; font-size:26px; letter-spacing:4px; text-transform:uppercase; }
-  .logo span { color:var(--accent); }
-  header h1 { font-size:20px; font-weight:700; margin-top:12px; }
-  header p { color:#c9cdc4; font-size:14px; margin-top:6px; }
-  .bar { background:var(--accent); color:var(--ink); text-align:center; font-size:13px; font-weight:700; padding:8px 16px; }
-  main { max-width:1080px; margin:0 auto; padding:28px 16px 60px; }
-  .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:18px; }
-  .card { background:var(--card); border-radius:16px; overflow:hidden; box-shadow:0 2px 10px rgba(16,20,16,.07); display:flex; flex-direction:column; }
-  .ph { position:relative; aspect-ratio:4/5; background:#e8e7e2; }
-  .ph img { width:100%; height:100%; object-fit:cover; display:block; }
-  .code { position:absolute; top:10px; inset-inline-start:10px; background:var(--ink); color:var(--accent); font-weight:800; font-size:13px; padding:4px 10px; border-radius:999px; letter-spacing:1px; }
-  .row { display:flex; align-items:center; justify-content:space-between; padding:12px 14px; gap:10px; }
-  .votes { font-size:14px; color:var(--muted); font-weight:500; }
-  .votes b { color:var(--ink); font-size:17px; font-weight:800; margin-inline-end:4px; }
-  button.vote { font-family:inherit; font-size:14px; font-weight:700; border:none; cursor:pointer; background:var(--ink); color:#fff; padding:9px 18px; border-radius:999px; transition:.15s; }
-  button.vote:hover:not(:disabled){ background:#2a2f28; }
-  button.vote:disabled { background:var(--accent); color:var(--ink); cursor:default; }
-  .empty { text-align:center; color:var(--muted); padding:60px 0; font-size:15px; }
-  footer { text-align:center; color:var(--muted); font-size:13px; padding:24px; }
-  footer a { color:var(--ink); font-weight:700; text-decoration:none; }
-</style>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/style.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%232fd48a'/><text x='50' y='70' font-size='60' text-anchor='middle' font-family='monospace' font-weight='bold' fill='%2305261a'>S</text></svg>">
 </head>
-<body>
-<header>
-  <div class="logo">Tropicfeel <span>Arabia</span></div>
-  <h1>مسابقة الصور</h1>
-  <p>صوّت لصورتك المفضلة — التصويت مفتوح للجميع</p>
-</header>
-<div class="bar">كل صورة برقم مشاركة فقط، وعدد الأصوات محدّث لحظياً</div>
-<main>
-  <div class="grid" id="grid"></div>
-  <div class="empty" id="empty" style="display:none">لا توجد مشاركات بعد</div>
-</main>
-<footer>تابعونا على انستغرام <a href="https://instagram.com/tropicfeelar" target="_blank">@tropicfeelar</a></footer>
+<body data-page="home">
+
+<!-- ================= HERO ================= -->
+<section class="hero">
+  <div class="wrap">
+    <div class="kicker">The Private Capital Exchange · Kuwait → GCC → Global</div>
+    <h1>Not a marketplace.<br>An <em>operating system</em> for the private economy.</h1>
+    <p class="lede">
+      Public companies enjoy analysts, buyers, valuations, and liquidity. A private company
+      making 800,000&nbsp;KD a year has none of that — it runs on relationships and luck.
+      Smart Money gives every private business the economic infrastructure that public
+      companies take for granted.
+    </p>
+    <div class="cta-row">
+      <a class="btn btn-primary" href="/dashboard">See the live demo →</a>
+      <a class="btn btn-ghost" href="/graph">Explore the economic graph</a>
+    </div>
+    <p class="faint" style="margin-top:26px;font-size:13.5px">
+      Discoverable · Understandable · Investable · Collaborative
+    </p>
+  </div>
+</section>
+
+<!-- ================= LIVE DEAL TICKER ================= -->
+<div class="ticker-shell" aria-hidden="true">
+  <div class="ticker" id="ticker"></div>
+</div>
+
+<!-- ================= THE PROBLEM ================= -->
+<section class="section" id="problem">
+  <div class="wrap">
+    <div class="section-kicker">The Problem</div>
+    <h2>The public market has incredible infrastructure. Private companies have almost none.</h2>
+    <p class="sub">
+      If Apple needs capital, everything exists: known value, buyers, sellers, analysts, banks,
+      liquidity. A construction company in Kuwait earning 800,000 KD a year? Maybe it's worth
+      2 million. Maybe 8 million. Nobody knows — and nobody is looking.
+    </p>
+    <div class="grid grid-2" style="margin-top:36px">
+      <div class="card">
+        <div class="panel-title">Public company — Apple</div>
+        <div class="tag-row">
+          <span class="chip green">✓ Known value</span><span class="chip green">✓ Buyers exist</span>
+          <span class="chip green">✓ Sellers exist</span><span class="chip green">✓ Analyst coverage</span>
+          <span class="chip green">✓ Bank financing</span><span class="chip green">✓ Institutional tracking</span>
+          <span class="chip green">✓ Liquidity</span>
+        </div>
+      </div>
+      <div class="card">
+        <div class="panel-title">Private company — construction co., Kuwait, 800K KD revenue</div>
+        <div class="tag-row">
+          <span class="chip red">✗ Valuation unknown</span><span class="chip red">✗ No buyer discovery</span>
+          <span class="chip red">✗ No investor access</span><span class="chip red">✗ No coverage</span>
+          <span class="chip red">✗ No partner matching</span><span class="chip red">✗ No liquidity path</span>
+          <span class="chip gold">~ Relationships &amp; luck</span>
+        </div>
+      </div>
+    </div>
+    <div class="card" style="margin-top:16px;border-color:var(--line-strong)">
+      <p style="font-size:15.5px">
+        Whether the owner wants to <b>sell 20%</b>, find a <b>strategic partner</b>, <b>merge</b>,
+        <b>raise capital</b>, find <b>suppliers</b>, or <b>acquire</b> another company — there is no
+        efficient marketplace. That is a huge inefficiency. <span class="green">We're removing it.</span>
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ================= MISSION ================= -->
+<section class="quote-band section alt" id="vision">
+  <blockquote>
+    "We make private businesses <em>discoverable</em>, <em>understandable</em>,
+    <em>investable</em> and <em>collaborative</em>."
+  </blockquote>
+  <div class="attr">The Smart Money mission — the Bloomberg Terminal for private companies.</div>
+</section>
+
+<!-- ================= PLATFORM PILLARS ================= -->
+<section class="section" id="platform">
+  <div class="wrap">
+    <div class="section-kicker">The Platform</div>
+    <h2>Every company gets the infrastructure of a public one.</h2>
+    <p class="sub">LinkedIn, Crunchbase, and Bloomberg — combined, for the private economy.</p>
+
+    <div class="grid grid-3" style="margin-top:36px">
+      <div class="feature">
+        <div class="f-icon">🪪</div>
+        <h3>Economic Profile</h3>
+        <p>Identity, industry, ownership, employees, certifications, markets served, and growth stage — a canonical page for every private company.</p>
+      </div>
+      <div class="feature">
+        <div class="f-icon">📈</div>
+        <h3>Financial Health</h3>
+        <p>Revenue, EBITDA, margins, cash flow, debt, and historical trends. Companies choose what to disclose; <b>verified</b> metrics are clearly distinguished from self-reported ones.</p>
+      </div>
+      <div class="feature">
+        <div class="f-icon">🤖</div>
+        <h3>AI Business Valuation</h3>
+        <p>Enterprise value, equity value, suggested ranges, risk profile, and attractiveness scores — with methods, assumptions, and confidence levels always disclosed. Decision support, not certified appraisal.</p>
+      </div>
+      <div class="feature">
+        <div class="f-icon">📣</div>
+        <h3>Opportunity Engine</h3>
+        <p>Publish what you need: investors, partners, distributors, suppliers, share sales, full exits, acquisitions, JVs, tenders, procurement, and expansion opportunities.</p>
+      </div>
+      <div class="feature">
+        <div class="f-icon">💡</div>
+        <h3>Capital Allocation Dashboard</h3>
+        <p>"Reducing receivable days by 15 could free 400,000 KD." Not networking — <b>economic intelligence</b> about where your capital works hardest.</p>
+      </div>
+      <div class="feature">
+        <div class="f-icon">🧩</div>
+        <h3>Asset Utilization AI</h3>
+        <p>People, machines, warehouses, trucks, patents, capacity — everything is capital. The AI continuously asks which assets are idle, then finds the company that can use them.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= DEAL MANUFACTURING ================= -->
+<section class="section alt" id="engine">
+  <div class="wrap">
+    <div class="section-kicker">The Breakthrough</div>
+    <h2>Marketplaces wait for deals. Smart Money <span class="green">manufactures them.</span></h2>
+    <p class="sub">
+      Old thinking waits for humans to find each other. Our AI continuously scans the economic
+      graph for value that both sides are missing — and proposes the introduction.
+    </p>
+    <div id="match-cards" style="margin-top:36px"></div>
+    <p style="margin-top:22px"><a class="btn btn-ghost" href="/dashboard">See all live matches in the demo →</a></p>
+  </div>
+</section>
+
+<!-- ================= ECONOMIC GRAPH ================= -->
+<section class="section" id="graph-teaser">
+  <div class="wrap">
+    <div class="section-kicker">The Economic Graph</div>
+    <h2>Google maps websites. LinkedIn maps professionals. Bloomberg maps public companies.</h2>
+    <p class="sub">
+      We map <b>private economies</b>. Click one company and see its suppliers, customers, competitors,
+      partners, idle assets, financing options, risk exposure, and expansion paths — a living map of commerce.
+    </p>
+    <div class="grid grid-4" style="margin-top:36px">
+      <div class="stat"><div class="label">Companies (demo)</div><div class="value" id="stat-companies">—</div><div class="sub">verified economic profiles</div></div>
+      <div class="stat"><div class="label">Mapped relationships</div><div class="value" id="stat-edges">—</div><div class="sub">supplier · customer · competitor</div></div>
+      <div class="stat"><div class="label">Live AI matches</div><div class="value" id="stat-matches">—</div><div class="sub">machine-manufactured deals</div></div>
+      <div class="stat"><div class="label">Synergy identified</div><div class="value" id="stat-value">—</div><div class="sub">estimated annual value</div></div>
+    </div>
+    <p style="margin-top:26px"><a class="btn btn-primary" href="/graph">Open the interactive graph →</a></p>
+  </div>
+</section>
+
+<!-- ================= PHASED ROADMAP ================= -->
+<section class="section alt" id="phases">
+  <div class="wrap">
+    <div class="section-kicker">Regulatory-Safe by Design</div>
+    <h2>Intelligence first. Trading last — and only through regulated partners.</h2>
+    <p class="sub">
+      Facilitating equity transactions means securities law, licensing, AML/KYC, and investor
+      protection. We phase toward that deliberately, so the platform scales safely.
+    </p>
+    <div class="phases" style="margin-top:36px">
+      <div class="phase">
+        <div class="num">PHASE 1 · LIVE</div>
+        <h3>Intelligence</h3>
+        <p>Estimated valuations, investment-readiness, acquisition-readiness, and growth scores. No trading.</p>
+      </div>
+      <div class="phase">
+        <div class="num">PHASE 2 · LIVE</div>
+        <h3>Signals</h3>
+        <p>Companies declare intent: "open to investors," "open to acquisition," "open to partnerships." Still no securities marketplace.</p>
+      </div>
+      <div class="phase">
+        <div class="num">PHASE 3 · ROLLING OUT</div>
+        <h3>Verified Access</h3>
+        <p>Verified investors request access. Confidential data rooms, due diligence, and negotiations — under NDA.</p>
+      </div>
+      <div class="phase locked">
+        <div class="num">PHASE 4 · FUTURE</div>
+        <h3>Regulated Transactions</h3>
+        <p>Only after legal structuring and licensing — or through regulated partners where required — would actual equity transactions be facilitated.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= OPPORTUNITY SCORE ================= -->
+<section class="section" id="score">
+  <div class="wrap">
+    <div class="section-kicker">Every Morning</div>
+    <h2>"There are 14 new opportunities." Not notifications. <span class="green">Money.</span></h2>
+    <p class="sub">The platform is an opportunity engine, not a database. Each morning, every company sees what the graph found overnight:</p>
+    <div class="grid grid-2" style="margin-top:32px">
+      <div class="card"><p>💰 A nearby manufacturer could reduce your costs by <b class="green">9%</b>.</p></div>
+      <div class="card"><p>🚚 A logistics company has unused capacity on your exact routes.</p></div>
+      <div class="card"><p>🏗 A construction company is seeking your exact expertise.</p></div>
+      <div class="card"><p>👥 A family business wants to sell <b class="gold">30%</b>.</p></div>
+      <div class="card"><p>🌍 A distributor is entering your market.</p></div>
+      <div class="card"><p>📋 A government tender matches your capabilities.</p></div>
+      <div class="card" style="grid-column:1/-1"><p>⚠️ Your largest customer may be over-concentrated — here are <b class="blue">three prospects</b> to diversify revenue.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= BUSINESS MODEL ================= -->
+<section class="section alt" id="model">
+  <div class="wrap">
+    <div class="section-kicker">Business Model</div>
+    <h2>Four revenue streams, one economic network.</h2>
+    <div class="grid grid-4" style="margin-top:36px">
+      <div class="feature">
+        <div class="f-icon">🔁</div>
+        <h3>1 · Subscription</h3>
+        <p>Analytics, benchmarking, valuations, AI recommendations, opportunity discovery, and dashboards.</p>
+      </div>
+      <div class="feature">
+        <div class="f-icon">🎯</div>
+        <h3>2 · Success Fees</h3>
+        <p>When a merger, investment, acquisition, or partnership closes through the platform.</p>
+      </div>
+      <div class="feature">
+        <div class="f-icon">📊</div>
+        <h3>3 · Premium Intelligence</h3>
+        <p>Industry reports, market trends, competitive benchmarking, and capital allocation insights.</p>
+      </div>
+      <div class="feature">
+        <div class="f-icon">🏦</div>
+        <h3>4 · Financial Ecosystem</h3>
+        <p>Banks, PE, family offices, law firms, auditors, insurers, and recruiters pay for qualified introductions — with full transparency and governance.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= CLOSING ================= -->
+<section class="quote-band">
+  <blockquote>
+    Google organized the world's information.<br>
+    Bloomberg organized public markets.<br>
+    <em>Smart Money organizes the world's private economy.</em>
+  </blockquote>
+  <div class="attr">Starting with small businesses in Kuwait. Expanding across the GCC. Then the world.</div>
+  <div style="margin-top:34px">
+    <a class="btn btn-primary" href="/dashboard">Experience the platform →</a>
+  </div>
+  <p class="faint" style="margin-top:30px;max-width:560px;margin-left:auto;margin-right:auto;font-size:13.5px">
+    The real asset won't be the software. It will be the network of trusted private businesses —
+    and the proprietary graph of how value flows between them.
+  </p>
+</section>
+
+<script src="/assets/data.js"></script>
+<script src="/assets/common.js"></script>
 <script>
-const voted = new Set(JSON.parse(localStorage.getItem('tf_voted') || '[]'));
-const grid = document.getElementById('grid');
+  // ticker: live-looking match feed (duplicated for seamless loop)
+  const tick = document.getElementById("ticker");
+  const items = SM.matches.map(m => {
+    const a = SM.byId(m.a), b = SM.byId(m.b);
+    return `<span>${m.icon} ${a.name} <b>↔</b> ${b.name} · <b>${SM.fmtKD(m.value)}</b> ${m.valueLabel}</span>`;
+  });
+  tick.innerHTML = items.concat(items).join("");
 
-function card(p) {
-  const done = voted.has(p.id);
-  const el = document.createElement('div');
-  el.className = 'card';
-  el.dataset.id = p.id;
-  el.innerHTML =
-    '<div class="ph"><span class="code">#' + p.code + '</span><img loading="lazy" alt="مشاركة رقم ' + p.code + '" src="' + p.url + '"></div>' +
-    '<div class="row"><span class="votes"><b>' + p.votes + '</b>صوت</span>' +
-    '<button class="vote" ' + (done ? 'disabled' : '') + '>' + (done ? '✓ تم التصويت' : 'صوّت') + '</button></div>';
-  el.querySelector('button').onclick = () => vote(p.id, el);
-  return el;
-}
+  // stats
+  const edges = SM.companies.reduce((n, c) =>
+    n + c.relationships.suppliers.length + c.relationships.customers.length + c.relationships.competitors.length, 0);
+  const synergy = SM.matches.reduce((n, m) => n + m.value, 0);
+  document.getElementById("stat-companies").textContent = SM.companies.length;
+  document.getElementById("stat-edges").textContent = edges;
+  document.getElementById("stat-matches").textContent = SM.matches.length;
+  document.getElementById("stat-value").textContent = SM.fmtKD(synergy);
 
-async function vote(id, el) {
-  const btn = el.querySelector('button.vote');
-  if (!btn || btn.disabled) return;
-  btn.disabled = true;
-  try {
-    const r = await fetch('/api/vote', { method: 'POST', headers: {'content-type':'application/json'}, body: JSON.stringify({ id }) });
-    const d = await r.json();
-    if (!r.ok) throw 0;
-    el.querySelector('.votes b').textContent = d.votes;
-    btn.textContent = '✓ تم التصويت';
-    voted.add(id);
-    localStorage.setItem('tf_voted', JSON.stringify([...voted]));
-  } catch { btn.disabled = false; }
-}
-
-async function load() {
-  const r = await fetch('/api/data');
-  const photos = await r.json();
-  grid.innerHTML = '';
-  document.getElementById('empty').style.display = photos.length ? 'none' : 'block';
-  photos.forEach(p => grid.appendChild(card(p)));
-}
-
-async function refreshCounts() {
-  try {
-    const photos = await (await fetch('/api/data')).json();
-    if (photos.length !== grid.children.length) return load();
-    photos.forEach(p => {
-      const el = grid.querySelector('[data-id="' + p.id + '"]');
-      if (el) el.querySelector('.votes b').textContent = p.votes;
-    });
-  } catch {}
-}
-
-load();
-setInterval(refreshCounts, 20000);
+  // three showcase match cards
+  const wrap = document.getElementById("match-cards");
+  SM.matches.slice(0, 3).forEach(m => {
+    const a = SM.byId(m.a), b = SM.byId(m.b);
+    const div = document.createElement("div");
+    div.className = "opp";
+    div.innerHTML = `
+      <div class="icon" style="background:var(--green-soft)">${m.icon}</div>
+      <div class="body">
+        <div class="title"><a href="/company?id=${a.id}" class="blue">${a.name}</a>
+          <span class="arrow">↔</span>
+          <a href="/company?id=${b.id}" class="blue">${b.name}</a></div>
+        <div class="desc">${m.detail}</div>
+        <div class="value"><span class="green">${SM.fmtKD(m.value)}</span> <span class="dim">${m.valueLabel}</span>
+          · <span class="gold">${m.confidence}% match confidence</span></div>
+        <div class="actions">
+          <button class="btn btn-primary btn-sm" onclick="this.textContent='✓ Introduction requested';this.disabled=true">Suggest introduction</button>
+          <span class="chip">${m.type}</span>
+        </div>
+      </div>`;
+    wrap.append(div);
+  });
 </script>
 </body>
 </html>
