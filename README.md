@@ -10,7 +10,7 @@ interactive demo built on a fictional dataset of 12 Kuwaiti/GCC companies.
 
 | Route | File | What it shows |
 |---|---|---|
-| `/` | `index.html` | The vision: the problem, mission, platform pillars, AI deal manufacturing, the 4-phase regulatory-safe roadmap, and the 4-stream business model |
+| `/smart-money` | `smart-money.html` | The vision: the problem, mission, platform pillars, AI deal manufacturing, the 4-phase regulatory-safe roadmap, and the 4-stream business model |
 | `/companies` | `companies.html` | Company directory — search & filter by industry and intent signals, with verified vs self-reported financials and AI valuation ranges |
 | `/company?id=…` | `company.html` | A company's economic profile: identity, financial health, AI valuation with confidence & methodology, readiness scores, published opportunity signals, idle assets, and mapped relationships |
 | `/dashboard` | `dashboard.html` | The morning opportunity engine, viewed as Al-Deera Construction: AI-manufactured deals with approve/dismiss, capital allocation intelligence, benchmarks, and idle-asset listings |
@@ -31,6 +31,6 @@ Shared assets live in `assets/` (`style.css` design system, `data.js` demo datas
 
 Static site — deploys as-is on Vercel (`cleanUrls` enabled in `vercel.json`). No build step, no environment variables required for the demo pages.
 
-> The previous Tropicfeel Arabia voting site is preserved at `/vote` (with its admin panel at `/admin` and serverless API under `api/`).
+> The Tropicfeel Arabia voting site is fully preserved and untouched at its original URLs: the voting page at `/` (`index.html`), the admin panel at `/admin`, and the serverless API under `api/`. Smart Money lives alongside it at `/smart-money` and its app routes.
 
 ⚠️ All companies, figures, valuations, and synergy estimates on the site are fictional demo data.

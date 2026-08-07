@@ -6,15 +6,15 @@
   nav.className = "nav";
   nav.innerHTML = `
     <div class="nav-inner">
-      <a class="brand" href="/">
+      <a class="brand" href="/smart-money">
         <span class="brand-mark">S</span>
         <span>Smart&nbsp;Money</span>
       </a>
       <nav class="nav-links">
         <a href="/companies" class="${page === "companies" ? "active" : ""}">Companies</a>
         <a href="/graph" class="${page === "graph" ? "active" : ""}">Economic Graph</a>
-        <a href="/#vision" class="">Vision</a>
-        <a href="/#model" class="">Business Model</a>
+        <a href="/smart-money#vision" class="">Vision</a>
+        <a href="/smart-money#model" class="">Business Model</a>
         <a href="/dashboard" class="cta ${page === "dashboard" ? "active" : ""}">Live Demo ↗</a>
       </nav>
     </div>`;
@@ -38,9 +38,9 @@
         </div>
         <div>
           <div class="panel-title">Company</div>
-          <p><a href="/#vision">Vision</a></p>
-          <p><a href="/#phases">Roadmap</a></p>
-          <p><a href="/#model">Business Model</a></p>
+          <p><a href="/smart-money#vision">Vision</a></p>
+          <p><a href="/smart-money#phases">Roadmap</a></p>
+          <p><a href="/smart-money#model">Business Model</a></p>
         </div>
       </div>
     </div>
