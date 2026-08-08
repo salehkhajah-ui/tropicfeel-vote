@@ -5,60 +5,118 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>لوحة الإدارة — مسابقة Tropicfeel Arabia</title>
 <meta name="robots" content="noindex">
-<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%23111311'/%3E%3Crect y='12' width='16' height='4' fill='%23c8f566'/%3E%3C/svg%3E">
+<link rel="preload" href="/assets/fonts/ibm-plex-sans-arabic-arabic-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/assets/fonts/ibm-plex-sans-arabic-arabic-700-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/assets/tokens.css">
 <style>
-  :root { --ink:#101410; --paper:#f7f6f2; --accent:#c8f566; --muted:#7a7f76; --red:#d64545; }
-  * { box-sizing:border-box; margin:0; padding:0; }
-  body { font-family:'Tajawal',sans-serif; background:var(--paper); color:var(--ink); }
-  header { background:var(--ink); color:#fff; padding:20px; text-align:center; font-weight:800; letter-spacing:2px; }
-  header span { color:var(--accent); }
-  main { max-width:760px; margin:0 auto; padding:24px 16px 60px; }
-  .box { background:#fff; border-radius:14px; padding:18px; margin-bottom:18px; box-shadow:0 2px 8px rgba(0,0,0,.06); }
-  .box h2 { font-size:16px; margin-bottom:12px; }
-  input[type=password], input[type=url] { width:100%; padding:10px 12px; border:1.5px solid #ddd; border-radius:10px; font-family:inherit; font-size:14px; }
-  .btn { font-family:inherit; font-size:14px; font-weight:700; border:none; cursor:pointer; background:var(--ink); color:#fff; padding:10px 20px; border-radius:999px; margin-top:10px; }
-  .btn.lime { background:var(--accent); color:var(--ink); }
-  .drop { border:2px dashed #c5c9c0; border-radius:12px; padding:26px; text-align:center; color:var(--muted); cursor:pointer; font-size:14px; }
-  .drop.on { border-color:var(--ink); background:#f0f5e6; }
-  #status { font-size:13px; margin-top:10px; font-weight:700; min-height:18px; }
-  .item { display:flex; align-items:center; gap:12px; padding:8px 0; border-bottom:1px solid #eee; }
-  .item img { width:52px; height:64px; object-fit:cover; border-radius:8px; background:#eee; }
-  .item .c { font-weight:800; }
-  .item .v { color:var(--muted); font-size:13px; flex:1; }
-  .del { background:none; border:none; color:var(--red); font-family:inherit; font-weight:700; cursor:pointer; font-size:13px; }
-  .row2 { display:flex; gap:8px; }
-  .row2 input { flex:1; }
-  .row2 .btn { margin-top:0; }
+.site-header {
+  display: flex; align-items: center; justify-content: space-between; gap: var(--sp-4);
+  height: 56px; padding-inline: var(--gutter);
+  border-block-end: var(--hairline);
+}
+.site-header .wordmark { font-size: var(--fs-1); }
+.site-header .role { font-size: var(--fs-2); font-weight: 700; }
+main { max-width: 720px; margin-inline: auto; padding: var(--sp-6) var(--gutter) var(--sp-8); }
+section + section { margin-block-start: var(--sp-6); padding-block-start: var(--sp-6); border-block-start: var(--hairline); }
+h2 { font-size: var(--fs-4); line-height: var(--lh-4); font-weight: 700; margin-block-end: var(--sp-3); }
+
+input[type="password"], input[type="url"] {
+  width: 100%; min-height: 44px; padding: var(--sp-2) var(--sp-3);
+  border: 1px solid var(--rule); border-radius: var(--radius);
+  font-family: inherit; font-size: var(--fs-2); background: var(--paper); color: var(--ink);
+}
+input:focus-visible { outline: 2px solid var(--ink); outline-offset: 0; border-color: var(--ink); }
+
+.btn {
+  font-size: var(--fs-2); font-weight: 700; border: none; cursor: pointer;
+  background: var(--ink); color: var(--paper);
+  min-height: 44px; padding: 0 var(--sp-5); border-radius: var(--radius-pill);
+  transition: opacity var(--dur) var(--ease);
+}
+.btn:hover { opacity: 0.85; }
+.btn.lime { background: var(--accent); color: var(--ink); }
+.field-msg { font-size: var(--fs-1); line-height: var(--lh-1); font-weight: 700; margin-block-start: var(--sp-2); min-height: 1.6em; }
+
+.drop {
+  border: 1px dashed var(--muted); border-radius: var(--radius);
+  padding: var(--sp-6) var(--sp-4); text-align: center;
+  color: var(--muted); cursor: pointer; font-size: var(--fs-2); line-height: var(--lh-2);
+  transition: border-color var(--dur) var(--ease), background var(--dur) var(--ease);
+}
+.drop strong { color: var(--ink); display: block; margin-block-end: var(--sp-1); }
+.drop.on, .drop:hover { border-color: var(--ink); background: var(--paper-2); }
+#status { font-size: var(--fs-2); font-weight: 700; margin-block-start: var(--sp-3); min-height: 1.65em; }
+#status.err { color: var(--ink); }
+#status .fail { color: var(--muted); font-weight: 400; }
+
+.row2 { display: flex; gap: var(--sp-2); }
+.row2 input { flex: 1; }
+
+.list-head {
+  display: flex; justify-content: space-between; align-items: baseline;
+  font-size: var(--fs-1); color: var(--muted); font-weight: 500;
+  padding-block-end: var(--sp-2); border-block-end: var(--hairline);
+}
+.item {
+  display: flex; align-items: center; gap: var(--sp-3);
+  padding-block: var(--sp-2); border-block-end: var(--hairline);
+  font-size: var(--fs-2);
+}
+.item img { width: 44px; height: 55px; object-fit: cover; background: var(--paper-2); }
+.item .c { font-weight: 700; min-width: 52px; font-variant-numeric: tabular-nums; }
+.item .v { color: var(--muted); flex: 1; font-variant-numeric: tabular-nums; }
+.del {
+  background: none; border: none; color: var(--ink); cursor: pointer;
+  font-family: inherit; font-size: var(--fs-2); font-weight: 700;
+  min-height: 44px; padding-inline: var(--sp-2);
+  text-decoration: underline; text-underline-offset: 3px;
+}
+.del:hover { color: var(--muted); }
+.hint { font-size: var(--fs-1); line-height: var(--lh-1); color: var(--muted); margin-block-start: var(--sp-2); }
 </style>
 </head>
 <body>
-<header>TROPICFEEL <span>ARABIA</span> — لوحة الإدارة</header>
+<header class="site-header">
+  <span class="wordmark">Tropicfeel Arabia</span>
+  <span class="role">لوحة الإدارة</span>
+</header>
 <main>
-  <div class="box" id="keyBox">
+  <section id="keyBox">
     <h2>مفتاح الإدارة</h2>
-    <input type="password" id="key" placeholder="أدخل مفتاح الإدارة">
-    <button class="btn" onclick="saveKey()">دخول</button>
-    <div id="keyMsg" style="color:#d64545;font-size:13px;margin-top:8px"></div>
-  </div>
+    <div class="row2">
+      <input type="password" id="key" placeholder="أدخل مفتاح الإدارة" autocomplete="current-password">
+      <button class="btn" onclick="saveKey()">دخول</button>
+    </div>
+    <div class="field-msg" id="keyMsg" role="status"></div>
+  </section>
 
   <div id="panel" style="display:none">
-    <div class="box">
-      <h2>رفع صور جديدة (من الجهاز)</h2>
-      <div class="drop" id="drop">اضغط هنا لاختيار الصور أو اسحبها وأفلتها<br><small>يمكن اختيار عدة صور دفعة واحدة — الترقيم تلقائي والضغط تلقائي</small></div>
+    <section>
+      <h2>رفع صور جديدة</h2>
+      <div class="drop" id="drop" role="button" tabindex="0" aria-label="اختر الصور أو اسحبها وأفلتها">
+        <strong>اضغط لاختيار الصور أو اسحبها وأفلتها هنا</strong>
+        يمكن اختيار عدة صور دفعة واحدة — الترقيم تلقائي والضغط تلقائي
+      </div>
       <input type="file" id="file" accept="image/*" multiple style="display:none">
-      <div id="status"></div>
-    </div>
-    <div class="box">
+      <div id="status" role="status" aria-live="polite"></div>
+      <p class="hint">الصيغ: JPG وPNG وWebP — تُضغط الصورة في المتصفح إلى 1000px قبل الرفع، فلا حاجة لتصغيرها مسبقاً.</p>
+    </section>
+
+    <section>
       <h2>إضافة صورة برابط مباشر</h2>
       <div class="row2">
-        <input type="url" id="purl" placeholder="https://...">
+        <input type="url" id="purl" placeholder="https://..." dir="ltr">
         <button class="btn lime" onclick="addUrl()">إضافة</button>
       </div>
-    </div>
-    <div class="box">
+      <div class="field-msg" id="urlMsg" role="status"></div>
+    </section>
+
+    <section>
       <h2>الصور الحالية</h2>
+      <div class="list-head num"><span>الرقم — الأصوات</span><span id="listCount"></span></div>
       <div id="list"></div>
-    </div>
+    </section>
   </div>
 </main>
 <script>
@@ -72,13 +130,16 @@ async function checkKey() {
 
 async function saveKey() {
   KEY = document.getElementById('key').value.trim();
+  if (!KEY) { document.getElementById('keyMsg').textContent = 'أدخل المفتاح أولاً.'; return; }
+  document.getElementById('keyMsg').textContent = 'جارٍ التحقق...';
   if (await checkKey()) {
     localStorage.setItem('tf_admin_key', KEY);
     show();
   } else {
-    document.getElementById('keyMsg').textContent = 'المفتاح غير صحيح';
+    document.getElementById('keyMsg').textContent = 'المفتاح غير صحيح — تأكد منه وأعد المحاولة.';
   }
 }
+document.getElementById('key').addEventListener('keydown', (e) => { if (e.key === 'Enter') saveKey(); });
 
 function show() {
   document.getElementById('keyBox').style.display = 'none';
@@ -89,6 +150,7 @@ function show() {
 const drop = document.getElementById('drop');
 const file = document.getElementById('file');
 drop.onclick = () => file.click();
+drop.onkeydown = (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); file.click(); } };
 drop.ondragover = e => { e.preventDefault(); drop.classList.add('on'); };
 drop.ondragleave = () => drop.classList.remove('on');
 drop.ondrop = e => { e.preventDefault(); drop.classList.remove('on'); upload(e.dataTransfer.files); };
@@ -115,29 +177,41 @@ function compress(f) {
 async function upload(files) {
   if (!files.length) return;
   const st = document.getElementById('status');
-  st.style.color = '#101410';
+  st.classList.remove('err');
   let ok = 0;
+  const failed = [];
   const arr = [...files];
   for (let i = 0; i < arr.length; i++) {
     st.textContent = 'جاري الرفع ' + (i + 1) + ' من ' + arr.length + '...';
     try {
       const image = await compress(arr[i]);
       const r = await fetch('/api/admin', { method: 'POST', headers: { ...H(), 'content-type': 'application/json' }, body: JSON.stringify({ image }) });
-      if (r.ok) ok++;
-    } catch {}
+      if (r.ok) ok++; else failed.push(arr[i].name);
+    } catch { failed.push(arr[i].name); }
   }
-  st.style.color = ok === arr.length ? '#3a7d1e' : '#d64545';
-  st.textContent = 'تمت إضافة ' + ok + ' من ' + arr.length + ' صورة' + (ok === arr.length ? ' ✓' : ' — أعد محاولة الباقي');
+  if (failed.length) {
+    st.classList.add('err');
+    st.innerHTML = '';
+    st.append('أُضيفت ' + ok + ' من ' + arr.length + ' — لم يُرفع: ');
+    const span = document.createElement('span');
+    span.className = 'fail';
+    span.textContent = failed.join('، ') + '. أعد محاولة هذه الملفات.';
+    st.append(span);
+  } else {
+    st.textContent = 'تمت إضافة ' + ok + ' من ' + arr.length + ' صورة، وظهرت الآن في صفحة التصويت.';
+  }
   file.value = '';
   loadList();
 }
 
 async function addUrl() {
   const u = document.getElementById('purl').value.trim();
-  if (!u) return;
+  const msg = document.getElementById('urlMsg');
+  msg.textContent = '';
+  if (!u) { msg.textContent = 'أدخل رابط الصورة أولاً.'; return; }
   const r = await fetch('/api/admin', { method: 'POST', headers: { ...H(), 'content-type': 'application/json' }, body: JSON.stringify({ url: u }) });
-  if (r.ok) { document.getElementById('purl').value = ''; loadList(); }
-  else alert('فشلت الإضافة — تأكد من الرابط');
+  if (r.ok) { document.getElementById('purl').value = ''; msg.textContent = 'أُضيفت الصورة.'; loadList(); }
+  else msg.textContent = 'فشلت الإضافة — تأكد أن الرابط يبدأ بـ https ويشير إلى صورة.';
 }
 
 async function delPhoto(id, code) {
@@ -149,13 +223,15 @@ async function delPhoto(id, code) {
 async function loadList() {
   const photos = await (await fetch('/api/data')).json();
   const list = document.getElementById('list');
-  list.innerHTML = photos.length ? '' : '<div style="color:#7a7f76;font-size:14px">لا توجد صور</div>';
+  document.getElementById('listCount').textContent = photos.length ? photos.length + ' صورة' : '';
+  list.innerHTML = photos.length ? '' : '<div class="hint">لا توجد صور</div>';
   photos.forEach(p => {
     const el = document.createElement('div');
     el.className = 'item';
-    el.innerHTML = '<img src="' + p.url + '"><span class="c">#' + p.code + '</span><span class="v">' + p.votes + ' صوت</span>';
+    el.innerHTML = '<img loading="lazy" alt="مشاركة رقم ' + p.code + '" src="' + p.url + '"><span class="c">#' + p.code + '</span><span class="v">' + p.votes + ' صوت</span>';
     const b = document.createElement('button');
     b.className = 'del'; b.textContent = 'حذف';
+    b.setAttribute('aria-label', 'حذف الصورة رقم ' + p.code);
     b.onclick = () => delPhoto(p.id, p.code);
     el.appendChild(b);
     list.appendChild(el);

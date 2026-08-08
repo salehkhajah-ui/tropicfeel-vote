@@ -4,100 +4,770 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>مسابقة صور Tropicfeel Arabia — صوّت الآن</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+<meta name="description" content="صوّر سفرتك أو طلعتك مع تروبيكفيل واربح تذكرة سفر بقيمة 300 دينار. التصويت مفتوح للجميع من 8 إلى 26 أغسطس.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%23111311'/%3E%3Crect y='12' width='16' height='4' fill='%23c8f566'/%3E%3C/svg%3E">
+<link rel="preload" href="/assets/fonts/ibm-plex-sans-arabic-arabic-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/assets/fonts/ibm-plex-sans-arabic-arabic-700-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/assets/tokens.css">
+<script>window.__data = fetch('/api/data').then((r) => r.json());</script>
 <style>
-  :root { --ink:#101410; --paper:#f7f6f2; --card:#ffffff; --accent:#c8f566; --muted:#7a7f76; }
-  * { box-sizing:border-box; margin:0; padding:0; }
-  body { font-family:'Tajawal',sans-serif; background:var(--paper); color:var(--ink); }
-  header { background:var(--ink); color:#fff; padding:34px 20px 30px; text-align:center; }
-  .logo { font-weight:800; font-size:26px; letter-spacing:4px; text-transform:uppercase; }
-  .logo span { color:var(--accent); }
-  header h1 { font-size:20px; font-weight:700; margin-top:12px; }
-  header p { color:#c9cdc4; font-size:14px; margin-top:6px; }
-  .bar { background:var(--accent); color:var(--ink); text-align:center; font-size:13px; font-weight:700; padding:8px 16px; }
-  main { max-width:1080px; margin:0 auto; padding:28px 16px 60px; }
-  .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:18px; }
-  .card { background:var(--card); border-radius:16px; overflow:hidden; box-shadow:0 2px 10px rgba(16,20,16,.07); display:flex; flex-direction:column; }
-  .ph { position:relative; aspect-ratio:4/5; background:#e8e7e2; }
-  .ph img { width:100%; height:100%; object-fit:cover; display:block; }
-  .code { position:absolute; top:10px; inset-inline-start:10px; background:var(--ink); color:var(--accent); font-weight:800; font-size:13px; padding:4px 10px; border-radius:999px; letter-spacing:1px; }
-  .row { display:flex; align-items:center; justify-content:space-between; padding:12px 14px; gap:10px; }
-  .votes { font-size:14px; color:var(--muted); font-weight:500; }
-  .votes b { color:var(--ink); font-size:17px; font-weight:800; margin-inline-end:4px; }
-  button.vote { font-family:inherit; font-size:14px; font-weight:700; border:none; cursor:pointer; background:var(--ink); color:#fff; padding:9px 18px; border-radius:999px; transition:.15s; }
-  button.vote:hover:not(:disabled){ background:#2a2f28; }
-  button.vote:disabled { background:var(--accent); color:var(--ink); cursor:default; }
-  .empty { text-align:center; color:var(--muted); padding:60px 0; font-size:15px; }
-  footer { text-align:center; color:var(--muted); font-size:13px; padding:24px; }
-  footer a { color:var(--ink); font-weight:700; text-decoration:none; }
+/* ============ header ============ */
+.site-header {
+  position: sticky; top: 0; z-index: 40;
+  display: flex; align-items: center; justify-content: space-between;
+  gap: var(--sp-4); height: 56px;
+  padding-inline: var(--gutter);
+  background: var(--paper);
+  border-block-end: var(--hairline);
+}
+.site-header .wordmark { font-size: var(--fs-1); }
+.site-nav { display: flex; gap: var(--sp-5); }
+.site-nav a {
+  font-size: var(--fs-2); font-weight: 500; text-decoration: none;
+  color: var(--ink); padding-block: var(--sp-2);
+}
+.site-nav a:hover { color: var(--muted); }
+.skip-link {
+  position: absolute; inset-inline-start: var(--sp-4); top: -48px;
+  background: var(--ink); color: var(--paper);
+  padding: var(--sp-2) var(--sp-4); font-size: var(--fs-2); text-decoration: none;
+  transition: top var(--dur) var(--ease); z-index: 50;
+}
+.skip-link:focus { top: var(--sp-2); }
+
+/* ============ hero ============ */
+.hero {
+  position: relative; overflow: hidden;
+  height: min(82svh, 860px);
+  background: var(--ink); color: var(--paper);
+}
+.hero-media, .hero-media img { position: absolute; inset: 0; width: 100%; height: 100%; }
+.hero-media img { object-fit: cover; opacity: 0; transition: opacity var(--dur-slow) var(--ease); }
+.hero-media img.on { opacity: 1; }
+/* functional legibility scrim, not decoration */
+.hero-scrim {
+  position: absolute; inset-inline: 0; bottom: 0; height: 45%;
+  background: linear-gradient(to top, rgba(17, 19, 17, 0.55), transparent);
+  pointer-events: none;
+}
+.hero-text {
+  position: absolute; inset-inline-start: 0; bottom: 0;
+  padding: var(--gutter); padding-block-end: var(--sp-7);
+  max-width: min(92%, 620px);
+}
+.hero-text h1 { font-size: var(--fs-6); line-height: var(--lh-6); font-weight: 700; }
+.hero-text p { font-size: var(--fs-3); margin-block-start: var(--sp-2); }
+.hero-link {
+  display: inline-flex; align-items: center; gap: var(--sp-2);
+  margin-block-start: var(--sp-4); min-height: 44px;
+  color: var(--paper); font-size: var(--fs-3); font-weight: 700; text-decoration: none;
+  border-block-end: 1px solid var(--paper);
+}
+.hero-link svg { transition: transform var(--dur) var(--ease); }
+.hero-link:hover svg { transform: translateX(-4px); }
+.hero-code {
+  position: absolute; inset-inline-end: var(--gutter); bottom: var(--sp-7);
+  font-size: var(--fs-2); font-weight: 700; color: var(--paper); opacity: 0.85;
+}
+@media (min-width: 768px) {
+  .hero-text h1 { font-size: var(--fs-7); line-height: var(--lh-7); }
+  .hero-text p { font-size: var(--fs-4); }
+}
+
+/* ============ status strip ============ */
+.status {
+  display: flex; align-items: center; justify-content: center; flex-wrap: wrap;
+  gap: var(--sp-2) var(--sp-5);
+  min-height: 52px; padding: var(--sp-3) var(--gutter);
+  border-block-end: var(--hairline);
+  font-size: var(--fs-2); font-weight: 500;
+}
+.status .dot {
+  display: inline-block; width: 8px; height: 8px; border-radius: 50%;
+  background: var(--accent); margin-inline-end: var(--sp-2);
+}
+.status .sep { color: var(--rule); }
+.status .muted { color: var(--muted); font-weight: 400; }
+
+/* ============ sections ============ */
+main section { margin-block-start: var(--section); }
+.section-head {
+  display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap;
+  gap: var(--sp-3); padding-inline: var(--gutter);
+  margin-block-end: var(--sp-5);
+}
+.section-head h2 { font-size: var(--fs-5); line-height: var(--lh-5); font-weight: 500; }
+
+/* ============ sort controls ============ */
+.sort { display: flex; align-items: center; gap: var(--sp-2); flex-wrap: wrap; }
+.sort button {
+  background: none; border: 1px solid var(--rule); border-radius: var(--radius-pill);
+  cursor: pointer; font-size: var(--fs-2); font-weight: 500; color: var(--ink);
+  padding: 0 var(--sp-4); min-height: 44px;
+  transition: background var(--dur) var(--ease), border-color var(--dur) var(--ease), color var(--dur) var(--ease);
+}
+.sort button[aria-pressed="true"] {
+  background: var(--ink); border-color: var(--ink); color: var(--paper); font-weight: 700;
+}
+.sort .gallery-count { margin-inline-start: var(--sp-2); }
+.gallery-count { color: var(--muted); font-size: var(--fs-2); }
+
+/* ============ entry grid ============ */
+.grid {
+  display: grid; grid-template-columns: repeat(2, 1fr);
+  gap: var(--sp-6) var(--tile-gap);
+  padding-inline: var(--gutter);
+}
+@media (min-width: 768px)  { .grid { grid-template-columns: repeat(3, 1fr); } }
+@media (min-width: 1024px) { .grid { grid-template-columns: repeat(4, 1fr); } }
+@media (min-width: 1440px) { .grid { grid-template-columns: repeat(5, 1fr); } }
+
+.tile-media {
+  position: relative; aspect-ratio: var(--photo-ratio);
+  background: var(--paper-2); overflow: hidden;
+  border-block-end: 2px solid transparent;
+  transition: border-color var(--dur) var(--ease);
+  cursor: pointer; padding: 0; border-inline: none; border-block-start: none;
+  display: block; width: 100%;
+}
+.tile.voted .tile-media { border-block-end-color: var(--accent); }
+.tile-media img {
+  width: 100%; height: 100%; object-fit: cover;
+  transition: transform var(--dur) var(--ease);
+}
+@media (hover: hover) { .tile-media:hover img { transform: scale(1.02); } }
+.tile-caption {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: var(--sp-2); margin-block-start: var(--sp-2); min-height: 44px;
+}
+.tile-code { font-size: var(--fs-2); font-weight: 700; }
+.tile-votes { color: var(--muted); font-size: var(--fs-2); white-space: nowrap; }
+.tile-err { font-size: var(--fs-1); line-height: var(--lh-1); color: var(--ink); margin-block-start: var(--sp-1); }
+
+/* ============ vote button + states ============ */
+.vote-btn {
+  border: none; cursor: pointer; border-radius: var(--radius-pill);
+  background: var(--accent); color: var(--ink);
+  font-size: var(--fs-2); font-weight: 700;
+  min-height: 44px; padding: 0 var(--sp-4);
+  transition: opacity var(--dur) var(--ease);
+}
+.vote-btn:hover { opacity: 0.85; }
+.vote-btn:disabled { cursor: default; opacity: 0.6; }
+.vote-btn.done, .vote-btn.closed {
+  background: none; color: var(--ink); opacity: 1; padding-inline: 0;
+}
+.vote-btn.closed { color: var(--muted); font-weight: 500; }
+
+/* odometer count — digits roll, never jitter */
+.odo {
+  display: inline-block; overflow: hidden; height: 1.5em;
+  vertical-align: bottom; font-variant-numeric: tabular-nums;
+}
+.odo > span { display: block; height: 1.5em; line-height: 1.5em; transition: transform var(--dur) var(--ease); }
+.odo > span > span { display: block; height: 1.5em; line-height: 1.5em; }
+
+/* ============ skeletons ============ */
+@keyframes pulse { 50% { opacity: 0.55; } }
+.skel .tile-media { cursor: default; animation: pulse 1.6s var(--ease) infinite; }
+.skel .bar { height: 14px; width: 60%; background: var(--paper-2); margin-block-start: var(--sp-3); animation: pulse 1.6s var(--ease) infinite; }
+.empty { padding: var(--sp-8) var(--gutter); text-align: center; color: var(--muted); }
+
+/* ============ leaderboard rail ============ */
+.rail {
+  display: flex; gap: var(--tile-gap);
+  overflow-x: auto; scroll-snap-type: x mandatory;
+  padding-inline: var(--gutter); padding-block-end: var(--sp-3);
+  scrollbar-width: thin; scrollbar-color: var(--rule) transparent;
+}
+.rank-item { flex: 0 0 200px; scroll-snap-align: start; }
+@media (min-width: 768px) { .rank-item { flex-basis: 240px; } }
+.rank-num {
+  font-size: var(--fs-6); line-height: 1; font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  margin-block-end: var(--sp-2);
+}
+.rank-item .tile-caption { min-height: 0; }
+
+/* ============ rules strip ============ */
+.rules { background: var(--paper-2); padding: var(--sp-7) var(--gutter); }
+.rules-grid { display: grid; gap: var(--sp-5); max-width: 1080px; margin-inline: auto; }
+@media (min-width: 768px) {
+  .rules-grid { grid-template-columns: repeat(3, 1fr); gap: var(--sp-6); }
+  .rules-col + .rules-col { border-inline-start: var(--hairline); padding-inline-start: var(--sp-6); }
+}
+.rules-col h3 { font-size: var(--fs-4); line-height: var(--lh-4); font-weight: 700; margin-block-end: var(--sp-2); }
+.rules-col p { font-size: var(--fs-2); line-height: var(--lh-2); color: var(--muted); max-width: 70ch; }
+
+/* ============ footer ============ */
+.site-footer {
+  margin-block-start: var(--section);
+  background: var(--ink); color: rgba(255, 255, 255, 0.75);
+  padding: var(--sp-7) var(--gutter);
+  display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap;
+  gap: var(--sp-3);
+  font-size: var(--fs-2);
+}
+.site-footer .wordmark { font-size: var(--fs-1); color: var(--paper); }
+.site-footer a { color: var(--paper); font-weight: 700; text-decoration: none; }
+.site-footer a:hover { text-decoration: underline; }
+
+/* ============ lightbox ============ */
+.lb {
+  position: fixed; inset: 0; z-index: 100;
+  background: var(--ink); color: var(--paper);
+  display: flex; flex-direction: column;
+}
+.lb[hidden] { display: none; }
+.lb-top { display: flex; justify-content: flex-end; padding: var(--sp-3) var(--sp-4); }
+.lb-stage {
+  position: relative; flex: 1; min-height: 0;
+  display: flex; align-items: center; justify-content: center;
+  padding-inline: var(--sp-2);
+}
+.lb-stage img { max-width: 100%; max-height: 100%; object-fit: contain; }
+.lb-bar {
+  display: flex; align-items: center; justify-content: center; flex-wrap: wrap;
+  gap: var(--sp-2) var(--sp-5);
+  padding: var(--sp-4); font-size: var(--fs-2);
+}
+.lb-bar .lb-code { font-weight: 700; font-size: var(--fs-3); }
+.lb-bar .lb-votes { color: var(--paper); opacity: 0.75; }
+.lb-btn {
+  background: none; border: 1px solid rgba(255, 255, 255, 0.35); border-radius: var(--radius-pill);
+  color: var(--paper); cursor: pointer;
+  min-height: 44px; min-width: 44px; padding: 0 var(--sp-3);
+  font-size: var(--fs-2); font-weight: 500;
+  display: inline-flex; align-items: center; justify-content: center; gap: var(--sp-2);
+  transition: border-color var(--dur) var(--ease);
+}
+.lb-btn:hover { border-color: var(--paper); }
+.lb .vote-btn { border: none; }
+.lb .vote-btn.done { color: var(--paper); }
+.lb-nav {
+  position: absolute; top: 50%; transform: translateY(-50%);
+  background: rgba(17, 19, 17, 0.5); border: none; color: var(--paper);
+  width: 44px; height: 60px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+}
+.lb-nav:hover { background: rgba(17, 19, 17, 0.8); }
+.lb-next { inset-inline-end: 0; }   /* forward = physical left in RTL */
+.lb-prev { inset-inline-start: 0; }
+.lb-err { width: 100%; text-align: center; font-size: var(--fs-1); opacity: 0.9; }
+
+.visually-hidden {
+  position: absolute; width: 1px; height: 1px;
+  clip-path: inset(50%); overflow: hidden; white-space: nowrap;
+}
 </style>
 </head>
 <body>
-<header>
-  <div class="logo">Tropicfeel <span>Arabia</span></div>
-  <h1>مسابقة الصور</h1>
-  <p>صوّت لصورتك المفضلة — التصويت مفتوح للجميع</p>
-</header>
-<div class="bar">كل صورة برقم مشاركة فقط، وعدد الأصوات محدّث لحظياً</div>
-<main>
-  <div class="grid" id="grid"></div>
-  <div class="empty" id="empty" style="display:none">لا توجد مشاركات بعد</div>
-</main>
-<footer>تابعونا على انستغرام <a href="https://instagram.com/tropicfeelar" target="_blank">@tropicfeelar</a></footer>
-<script>
-const voted = new Set(JSON.parse(localStorage.getItem('tf_voted') || '[]'));
-const grid = document.getElementById('grid');
+<a class="skip-link" href="#gallery">تخطَّ إلى المشاركات</a>
 
-function card(p) {
-  const done = voted.has(p.id);
-  const el = document.createElement('div');
-  el.className = 'card';
-  el.dataset.id = p.id;
-  el.innerHTML =
-    '<div class="ph"><span class="code">#' + p.code + '</span><img loading="lazy" alt="مشاركة رقم ' + p.code + '" src="' + p.url + '"></div>' +
-    '<div class="row"><span class="votes"><b>' + p.votes + '</b>صوت</span>' +
-    '<button class="vote" ' + (done ? 'disabled' : '') + '>' + (done ? '✓ تم التصويت' : 'صوّت') + '</button></div>';
-  el.querySelector('button').onclick = () => vote(p.id, el);
-  return el;
+<header class="site-header">
+  <span class="wordmark">Tropicfeel Arabia</span>
+  <nav class="site-nav" aria-label="التنقل">
+    <a href="#gallery">التصويت</a>
+    <a href="#leaderboard">الترتيب</a>
+    <a href="#rules">الشروط</a>
+  </nav>
+</header>
+
+<section class="hero" aria-label="مسابقة الصور">
+  <div class="hero-media" id="heroMedia" aria-hidden="true"></div>
+  <div class="hero-scrim"></div>
+  <div class="hero-text">
+    <h1>مسابقة الصور</h1>
+    <p>صوّر سفرتك أو طلعتك مع تروبيكفيل واربح تذكرة سفر بقيمة 300 دينار</p>
+    <a class="hero-link" href="#gallery">
+      تصفّح المشاركات
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M19 12H5m0 0l6-6m-6 6l6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </a>
+  </div>
+  <span class="hero-code num" id="heroCode"></span>
+</section>
+
+<div class="status num" id="status" role="status">
+  <span><span class="dot" aria-hidden="true"></span><span id="statusPhase">التصويت مفتوح</span></span>
+  <span class="sep" aria-hidden="true">|</span>
+  <span class="muted" id="statusMeta"></span>
+</div>
+
+<main id="main">
+  <section id="gallery" aria-label="المشاركات">
+    <div class="section-head">
+      <h2>كل المشاركات</h2>
+      <div class="sort" role="group" aria-label="ترتيب المشاركات">
+        <button type="button" data-sort="new" aria-pressed="true">الأحدث</button>
+        <button type="button" data-sort="top" aria-pressed="false">الأعلى تصويتاً</button>
+        <span class="gallery-count num" id="galleryCount"></span>
+      </div>
+    </div>
+    <div class="grid" id="grid"></div>
+    <div class="empty" id="empty" hidden>لا توجد مشاركات بعد — عد قريباً</div>
+  </section>
+
+  <section id="leaderboard" aria-label="الأعلى تصويتاً" hidden>
+    <div class="section-head"><h2>الأعلى تصويتاً</h2></div>
+    <div class="rail" id="rail"></div>
+  </section>
+
+  <section id="rules" class="rules" aria-label="الشروط والجائزة">
+    <div class="rules-grid">
+      <div class="rules-col">
+        <h3>الجائزة</h3>
+        <p>تذكرة سفر بقيمة 300 دينار كويتي — يُعلن الفائز على حسابنا في انستغرام.</p>
+      </div>
+      <div class="rules-col">
+        <h3>مدة المسابقة</h3>
+        <p class="num">من 8 إلى 26 أغسطس — يُغلق التصويت في نهاية اليوم الأخير بتوقيت الكويت.</p>
+      </div>
+      <div class="rules-col">
+        <h3>كيف تشارك</h3>
+        <p>صوّر سفرتك أو طلعتك مع تروبيكفيل وانشرها في ستوري انستغرام مع منشن @tropicfeelar — تُضاف صورتك إلى المسابقة برقم خاص بها، والتصويت مفتوح للجميع.</p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <span class="wordmark">Tropicfeel Arabia</span>
+  <span>تابعونا على انستغرام <a href="https://instagram.com/tropicfeelar" target="_blank" rel="noopener">@tropicfeelar</a></span>
+</footer>
+
+<div class="lb" id="lb" role="dialog" aria-modal="true" aria-label="عرض الصورة" hidden>
+  <div class="lb-top">
+    <button type="button" class="lb-btn" id="lbClose" aria-label="إغلاق">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+    </button>
+  </div>
+  <div class="lb-stage">
+    <img id="lbImg" alt="">
+    <button type="button" class="lb-nav lb-next" id="lbNext" aria-label="الصورة التالية">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M15 6l-6 6 6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+    <button type="button" class="lb-nav lb-prev" id="lbPrev" aria-label="الصورة السابقة">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+  </div>
+  <div class="lb-bar num">
+    <span class="lb-code" id="lbCode"></span>
+    <span class="lb-votes"><span class="odo" id="lbOdo" aria-live="polite"></span> صوت</span>
+    <button type="button" class="vote-btn" id="lbVote">صوّت</button>
+    <button type="button" class="lb-btn" id="lbShare">مشاركة الرابط</button>
+    <span class="lb-err" id="lbErr" role="status"></span>
+  </div>
+</div>
+
+<noscript><div class="empty">هذه الصفحة تحتاج جافاسكربت لعرض المشاركات والتصويت.</div></noscript>
+
+<script>
+/* ---------- config (presentation only — no backend behavior changes) ---------- */
+const CONFIG = {
+  DEADLINE: "2026-08-26T23:59:59+03:00", // آخر يوم تصويت: 26 أغسطس بتوقيت الكويت
+  VOTING_CLOSED: false,  // manual switch: shows the closed state everywhere
+};
+
+/* ---------- state ---------- */
+const voted = new Set(JSON.parse(localStorage.getItem('tf_voted') || '[]'));
+let photos = [];                 // [{id, code, url, votes}]
+let sortMode = 'new';
+let lbIndex = -1;                // index into current lightbox order (gallery order)
+const tileEls = new Map();       // id -> tile element
+const inflight = new Set();      // ids with a vote request in flight
+
+const $ = (id) => document.getElementById(id);
+const grid = $('grid');
+const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+const closed = () => CONFIG.VOTING_CLOSED || (CONFIG.DEADLINE && Date.now() > +new Date(CONFIG.DEADLINE));
+
+/* ---------- odometer: the count is the confirmation ---------- */
+function odoInit(el, val) {
+  el.textContent = '';
+  const track = document.createElement('span');
+  const v = document.createElement('span');
+  v.textContent = val;
+  track.appendChild(v);
+  el.appendChild(track);
+  el.dataset.val = val;
+}
+function odoSet(el, val) {
+  const old = Number(el.dataset.val);
+  if (!el.firstChild) return odoInit(el, val);
+  if (val === old) return;
+  el.dataset.val = val;
+  if (reducedMotion) { el.firstChild.firstChild.textContent = val; return; }
+  const track = el.firstChild;
+  const up = val > old;
+  const nv = document.createElement('span');
+  nv.textContent = val;
+  track.style.transition = 'none';
+  if (up) {                                  // new value rolls in from below
+    track.appendChild(nv);
+    track.style.transform = 'translateY(0)';
+    requestAnimationFrame(() => {
+      track.style.transition = '';
+      track.style.transform = 'translateY(-1.5em)';
+    });
+  } else {                                   // rollback: old value rolls back down
+    track.insertBefore(nv, track.firstChild);
+    track.style.transform = 'translateY(-1.5em)';
+    requestAnimationFrame(() => {
+      track.style.transition = '';
+      track.style.transform = 'translateY(0)';
+    });
+  }
+  track.addEventListener('transitionend', () => {
+    track.style.transition = 'none';
+    track.style.transform = 'translateY(0)';
+    track.textContent = '';
+    const v = document.createElement('span');
+    v.textContent = el.dataset.val;
+    track.appendChild(v);
+    requestAnimationFrame(() => { track.style.transition = ''; });
+  }, { once: true });
 }
 
-async function vote(id, el) {
-  const btn = el.querySelector('button.vote');
-  if (!btn || btn.disabled) return;
-  btn.disabled = true;
+/* ---------- vote flow: optimistic, rolled back on failure ---------- */
+function voteLabel(btn, p) {
+  btn.classList.remove('done', 'closed');
+  if (closed()) { btn.textContent = 'انتهى التصويت'; btn.disabled = true; btn.classList.add('closed'); }
+  else if (voted.has(p.id)) { btn.textContent = 'تم التصويت'; btn.disabled = true; btn.classList.add('done'); }
+  else { btn.textContent = 'صوّت'; btn.disabled = inflight.has(p.id); }
+}
+function syncPhoto(p) {
+  const tile = tileEls.get(p.id);
+  if (tile) {
+    tile.classList.toggle('voted', voted.has(p.id));
+    odoSet(tile.querySelector('.odo'), p.votes);
+    voteLabel(tile.querySelector('.vote-btn'), p);
+  }
+  if (lbIndex >= 0 && sorted()[lbIndex] && sorted()[lbIndex].id === p.id) {
+    odoSet($('lbOdo'), p.votes);
+    voteLabel($('lbVote'), p);
+  }
+  renderRailCounts();
+}
+function showErr(p, msg) {
+  const tile = tileEls.get(p.id);
+  if (tile) {
+    let e = tile.querySelector('.tile-err');
+    if (!e) { e = document.createElement('p'); e.className = 'tile-err'; e.setAttribute('role', 'status'); tile.appendChild(e); }
+    e.textContent = msg;
+    setTimeout(() => e.remove(), 5000);
+  }
+  if (lbIndex >= 0 && sorted()[lbIndex] && sorted()[lbIndex].id === p.id) {
+    $('lbErr').textContent = msg;
+    setTimeout(() => { $('lbErr').textContent = ''; }, 5000);
+  }
+}
+async function vote(p) {
+  if (closed() || voted.has(p.id) || inflight.has(p.id)) return;
+  inflight.add(p.id);
+  p.votes += 1;                 // optimistic: the count rolls immediately
+  voted.add(p.id);
+  syncPhoto(p);
   try {
-    const r = await fetch('/api/vote', { method: 'POST', headers: {'content-type':'application/json'}, body: JSON.stringify({ id }) });
+    const r = await fetch('/api/vote', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ id: p.id }),
+    });
     const d = await r.json();
     if (!r.ok) throw 0;
-    el.querySelector('.votes b').textContent = d.votes;
-    btn.textContent = '✓ تم التصويت';
-    voted.add(id);
+    p.votes = d.votes;          // settle on the server's number
     localStorage.setItem('tf_voted', JSON.stringify([...voted]));
-  } catch { btn.disabled = false; }
+  } catch {
+    p.votes -= 1;               // roll the digits back down
+    voted.delete(p.id);
+    showErr(p, 'لم يُسجَّل صوتك، حاول مرة أخرى.');
+  } finally {
+    inflight.delete(p.id);
+    syncPhoto(p);
+  }
 }
 
-async function load() {
-  const r = await fetch('/api/data');
-  const photos = await r.json();
-  grid.innerHTML = '';
-  document.getElementById('empty').style.display = photos.length ? 'none' : 'block';
-  photos.forEach(p => grid.appendChild(card(p)));
+/* ---------- gallery ---------- */
+function sorted() {
+  const a = [...photos];
+  if (sortMode === 'top') a.sort((x, y) => y.votes - x.votes || x.code.localeCompare(y.code));
+  else a.sort((x, y) => y.code.localeCompare(x.code));
+  return a;
+}
+function tile(p, i) {
+  const el = document.createElement('div');
+  el.className = 'tile' + (voted.has(p.id) ? ' voted' : '');
+  el.dataset.id = p.id;
+
+  const media = document.createElement('button');
+  media.type = 'button';
+  media.className = 'tile-media';
+  media.setAttribute('aria-label', 'عرض المشاركة رقم ' + p.code);
+  const img = document.createElement('img');
+  img.src = p.url;
+  img.alt = 'مشاركة رقم ' + p.code + ' في مسابقة الصور';
+  img.width = 600; img.height = 750;
+  img.decoding = 'async';
+  if (i < 4) img.fetchPriority = 'high'; else img.loading = 'lazy';
+  media.appendChild(img);
+  media.onclick = () => openLb(sorted().findIndex((x) => x.id === p.id));
+
+  const cap = document.createElement('div');
+  cap.className = 'tile-caption num';
+  cap.innerHTML = '<span class="tile-code">#' + p.code + '</span>' +
+    '<span class="tile-votes"><span class="odo" aria-live="polite"></span> صوت</span>';
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'vote-btn';
+  btn.onclick = () => vote(p);
+  cap.appendChild(btn);
+
+  el.appendChild(media);
+  el.appendChild(cap);
+  odoInit(cap.querySelector('.odo'), p.votes);
+  voteLabel(btn, p);
+  return el;
+}
+function renderGrid() {
+  grid.textContent = '';
+  tileEls.clear();
+  const list = sorted();
+  $('empty').hidden = list.length > 0;
+  $('galleryCount').textContent = list.length ? list.length + ' مشاركة' : '';
+  list.forEach((p, i) => {
+    const el = tile(p, i);
+    tileEls.set(p.id, el);
+    grid.appendChild(el);
+  });
+}
+function renderSkeletons() {
+  grid.textContent = '';
+  for (let i = 0; i < 8; i++) {
+    const el = document.createElement('div');
+    el.className = 'tile skel';
+    el.innerHTML = '<div class="tile-media"></div><div class="bar"></div>';
+    grid.appendChild(el);
+  }
+}
+document.querySelectorAll('.sort button').forEach((b) => {
+  b.onclick = () => {
+    if (sortMode === b.dataset.sort) return;
+    sortMode = b.dataset.sort;
+    document.querySelectorAll('.sort button').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+    renderGrid();
+  };
+});
+
+/* ---------- leaderboard rail ---------- */
+let railOrder = [];
+function topList() {
+  return [...photos].sort((x, y) => y.votes - x.votes || x.code.localeCompare(y.code)).slice(0, 8);
+}
+function renderRail() {
+  const list = topList();
+  $('leaderboard').hidden = list.length < 2;
+  railOrder = list.map((p) => p.id);
+  const rail = $('rail');
+  rail.textContent = '';
+  list.forEach((p, i) => {
+    const el = document.createElement('div');
+    el.className = 'rank-item';
+    el.dataset.id = p.id;
+    const media = document.createElement('button');
+    media.type = 'button';
+    media.className = 'tile-media';
+    media.setAttribute('aria-label', 'عرض المشاركة رقم ' + p.code);
+    media.innerHTML = '<img loading="lazy" decoding="async" width="600" height="750" src="' + p.url +
+      '" alt="المركز ' + (i + 1) + ' — مشاركة رقم ' + p.code + '">';
+    media.onclick = () => openLb(sorted().findIndex((x) => x.id === p.id));
+    el.innerHTML = '<div class="rank-num" aria-label="المركز ' + (i + 1) + '">' + (i + 1) + '</div>';
+    el.appendChild(media);
+    const cap = document.createElement('div');
+    cap.className = 'tile-caption num';
+    cap.innerHTML = '<span class="tile-code">#' + p.code + '</span>' +
+      '<span class="tile-votes"><span class="odo"></span> صوت</span>';
+    el.appendChild(cap);
+    odoInit(cap.querySelector('.odo'), p.votes);
+    rail.appendChild(el);
+  });
+}
+function renderRailCounts() {
+  const list = topList();
+  if (list.map((p) => p.id).join() !== railOrder.join()) return renderRail();
+  list.forEach((p) => {
+    const el = $('rail').querySelector('[data-id="' + p.id + '"] .odo');
+    if (el) odoSet(el, p.votes);
+  });
 }
 
-async function refreshCounts() {
+/* ---------- hero: the contest advertising itself ---------- */
+let heroTimer = null;
+function renderHero() {
+  const list = topList().slice(0, 5);
+  const media = $('heroMedia');
+  if (!list.length || media.childElementCount) return;
+  list.forEach((p, i) => {
+    const img = document.createElement('img');
+    img.src = p.url;
+    img.alt = '';
+    if (i === 0) { img.className = 'on'; img.fetchPriority = 'high'; }
+    else img.loading = 'lazy';
+    img.dataset.code = p.code;
+    media.appendChild(img);
+  });
+  $('heroCode').textContent = '#' + list[0].code;
+  if (list.length > 1 && !reducedMotion) {
+    let cur = 0;
+    heroTimer = setInterval(() => {
+      const imgs = media.children;
+      imgs[cur].classList.remove('on');
+      cur = (cur + 1) % imgs.length;
+      imgs[cur].classList.add('on');
+      $('heroCode').textContent = '#' + imgs[cur].dataset.code;
+    }, 7000);
+  }
+}
+
+/* ---------- status strip ---------- */
+function renderStatus() {
+  const phase = $('statusPhase');
+  const meta = $('statusMeta');
+  if (closed()) {
+    phase.textContent = 'انتهى التصويت';
+    meta.textContent = 'شكراً لكل من صوّت — النتائج على انستغرام';
+    return;
+  }
+  phase.textContent = 'التصويت مفتوح';
+  if (CONFIG.DEADLINE) {
+    const ms = +new Date(CONFIG.DEADLINE) - Date.now();
+    const d = Math.floor(ms / 86400000);
+    const h = Math.floor((ms % 86400000) / 3600000);
+    const m = Math.floor((ms % 3600000) / 60000);
+    meta.textContent = 'ينتهي بعد ' + (d > 0 ? d + ' يوم و' + h + ' ساعة' : h > 0 ? h + ' ساعة و' + m + ' دقيقة' : m + ' دقيقة');
+  } else {
+    meta.textContent = photos.length ? photos.length + ' مشاركة في المسابقة' : '';
+  }
+}
+setInterval(renderStatus, 60000);
+
+/* ---------- lightbox ---------- */
+const lb = $('lb');
+let lbOpener = null;
+function openLb(index) {
+  if (index < 0) return;
+  lbOpener = document.activeElement;
+  lbIndex = index;
+  lb.hidden = false;
+  document.body.style.overflow = 'hidden';
+  renderLb();
+  $('lbClose').focus();
+}
+function renderLb() {
+  const p = sorted()[lbIndex];
+  if (!p) return closeLb();
+  $('lbImg').src = p.url;
+  $('lbImg').alt = 'مشاركة رقم ' + p.code + ' في مسابقة الصور';
+  $('lbCode').textContent = '#' + p.code;
+  $('lbErr').textContent = '';
+  odoInit($('lbOdo'), p.votes);
+  voteLabel($('lbVote'), p);
+  $('lbVote').onclick = () => vote(p);
+  history.replaceState(null, '', '#p' + p.code);
+}
+function closeLb() {
+  lb.hidden = true;
+  lbIndex = -1;
+  document.body.style.overflow = '';
+  history.replaceState(null, '', location.pathname);
+  if (lbOpener) { lbOpener.focus(); lbOpener = null; }
+}
+function lbStep(dir) {   // +1 forward, -1 back
+  const list = sorted();
+  lbIndex = (lbIndex + dir + list.length) % list.length;
+  renderLb();
+}
+$('lbClose').onclick = closeLb;
+$('lbNext').onclick = () => lbStep(1);
+$('lbPrev').onclick = () => lbStep(-1);
+$('lbShare').onclick = async () => {
+  const url = location.origin + location.pathname + '#p' + sorted()[lbIndex].code;
   try {
-    const photos = await (await fetch('/api/data')).json();
-    if (photos.length !== grid.children.length) return load();
-    photos.forEach(p => {
-      const el = grid.querySelector('[data-id="' + p.id + '"]');
-      if (el) el.querySelector('.votes b').textContent = p.votes;
+    if (navigator.share) await navigator.share({ url });
+    else {
+      await navigator.clipboard.writeText(url);
+      $('lbShare').textContent = 'نُسخ الرابط';
+      setTimeout(() => { $('lbShare').textContent = 'مشاركة الرابط'; }, 2000);
+    }
+  } catch {}
+};
+document.addEventListener('keydown', (e) => {
+  if (lb.hidden) return;
+  if (e.key === 'Escape') closeLb();
+  else if (e.key === 'ArrowLeft') lbStep(1);    // forward is left in RTL
+  else if (e.key === 'ArrowRight') lbStep(-1);
+  else if (e.key === 'Tab') {                   // keep focus inside the dialog
+    const f = [...lb.querySelectorAll('button:not(:disabled)')];
+    if (!f.length) return;
+    const first = f[0], last = f[f.length - 1];
+    if (e.shiftKey && document.activeElement === first) { last.focus(); e.preventDefault(); }
+    else if (!e.shiftKey && document.activeElement === last) { first.focus(); e.preventDefault(); }
+  }
+});
+window.addEventListener('hashchange', () => {
+  const m = /^#p(\w+)$/.exec(location.hash);
+  if (!m) { if (!lb.hidden) closeLb(); return; }
+  const i = sorted().findIndex((p) => p.code === m[1]);
+  if (i >= 0) openLb(i);
+});
+let touchX = null;
+lb.addEventListener('touchstart', (e) => { touchX = e.touches[0].clientX; }, { passive: true });
+lb.addEventListener('touchend', (e) => {
+  if (touchX === null) return;
+  const dx = e.changedTouches[0].clientX - touchX;
+  touchX = null;
+  if (Math.abs(dx) < 48) return;
+  lbStep(dx > 0 ? 1 : -1);   // dragging the strip rightward reveals the next (RTL)
+}, { passive: true });
+
+/* ---------- load + poll (same endpoints, same 20s cadence as before) ---------- */
+async function load() {
+  renderSkeletons();
+  try {
+    photos = await (window.__data || fetch('/api/data').then((r) => r.json()));
+  } catch { photos = []; }
+  renderGrid();
+  renderRail();
+  renderHero();
+  renderStatus();
+  const m = /^#p(\w+)$/.exec(location.hash);
+  if (m) {
+    const i = sorted().findIndex((p) => p.code === m[1]);
+    if (i >= 0) openLb(i);
+  }
+}
+async function refresh() {
+  try {
+    const fresh = await (await fetch('/api/data')).json();
+    if (fresh.length !== photos.length) {
+      photos = fresh;
+      renderGrid();
+      renderRail();
+      renderStatus();
+      return;
+    }
+    fresh.forEach((f) => {
+      const p = photos.find((x) => x.id === f.id);
+      if (p && !inflight.has(p.id) && f.votes !== p.votes) {
+        p.votes = f.votes;
+        syncPhoto(p);
+      }
     });
+    renderStatus();
   } catch {}
 }
-
 load();
-setInterval(refreshCounts, 20000);
+setInterval(refresh, 20000);
 </script>
 </body>
 </html>
