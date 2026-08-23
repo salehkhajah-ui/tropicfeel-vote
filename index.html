@@ -324,7 +324,7 @@ main section { margin-block-start: var(--section); }
       </div>
       <div class="rules-col">
         <h3>كيف تشارك</h3>
-        <p>صوّر سفرتك أو طلعتك مع تروبيكفيل وانشرها في ستوري انستغرام مع منشن @tropicfeelar — تُضاف صورتك إلى المسابقة برقم خاص بها، والتصويت مفتوح للجميع.</p>
+        <p>صوّر سفرتك أو طلعتك مع تروبيكفيل وانشرها في ستوري انستغرام مع منشن @tropicfeelar — تُضاف صورتك إلى المسابقة برقم خاص بها. التصويت مفتوح للجميع بصوت واحد من كل جهاز.</p>
       </div>
     </div>
   </section>
@@ -370,6 +370,7 @@ const CONFIG = {
 
 /* ---------- state ---------- */
 const voted = new Set(JSON.parse(localStorage.getItem('tf_voted') || '[]'));
+let deviceUsed = !!localStorage.getItem('tf_device_voted'); // one vote per device
 let photos = [];                 // [{id, code, url, votes}]
 let sortMode = 'new';
 let lbIndex = -1;                // index into current lightbox order (gallery order)
@@ -434,6 +435,7 @@ function voteLabel(btn, p) {
   btn.classList.remove('done', 'closed');
   if (closed()) { btn.textContent = 'انتهى التصويت'; btn.disabled = true; btn.classList.add('closed'); }
   else if (voted.has(p.id)) { btn.textContent = 'تم التصويت'; btn.disabled = true; btn.classList.add('done'); }
+  else if (deviceUsed) { btn.textContent = 'صوّت'; btn.disabled = true; btn.title = 'صوت واحد من كل جهاز'; }
   else { btn.textContent = 'صوّت'; btn.disabled = inflight.has(p.id); }
 }
 function syncPhoto(p) {
@@ -462,8 +464,17 @@ function showErr(p, msg) {
     setTimeout(() => { $('lbErr').textContent = ''; }, 5000);
   }
 }
+function lockDevice(photoId) {
+  deviceUsed = true;
+  localStorage.setItem('tf_device_voted', photoId || '1');
+  tileEls.forEach((tile, id) => {
+    const p = photos.find((x) => x.id === id);
+    if (p) voteLabel(tile.querySelector('.vote-btn'), p);
+  });
+  if (lbIndex >= 0 && sorted()[lbIndex]) voteLabel($('lbVote'), sorted()[lbIndex]);
+}
 async function vote(p) {
-  if (closed() || voted.has(p.id) || inflight.has(p.id)) return;
+  if (closed() || voted.has(p.id) || inflight.has(p.id) || deviceUsed) return;
   inflight.add(p.id);
   p.votes += 1;                 // optimistic: the count rolls immediately
   voted.add(p.id);
@@ -474,14 +485,20 @@ async function vote(p) {
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ id: p.id }),
     });
-    const d = await r.json();
-    if (!r.ok) throw 0;
+    const d = await r.json().catch(() => ({}));
+    if (!r.ok) throw (r.status === 409 ? 'used' : 0);
     p.votes = d.votes;          // settle on the server's number
     localStorage.setItem('tf_voted', JSON.stringify([...voted]));
-  } catch {
+    lockDevice(p.id);           // one vote per device
+  } catch (e) {
     p.votes -= 1;               // roll the digits back down
     voted.delete(p.id);
-    showErr(p, 'لم يُسجَّل صوتك، حاول مرة أخرى.');
+    if (e === 'used') {
+      showErr(p, 'سبق أن صوّتت من هذا الجهاز — صوت واحد لكل جهاز.');
+      lockDevice('');
+    } else {
+      showErr(p, 'لم يُسجَّل صوتك، حاول مرة أخرى.');
+    }
   } finally {
     inflight.delete(p.id);
     syncPhoto(p);
