@@ -15,6 +15,8 @@ export default async function handler(req, res) {
   try {
     const id = String((req.body || {}).id || "");
     const s = store();
+    const ip = String(req.headers["x-forwarded-for"] || req.socket.remoteAddress || "?").split(",")[0].trim();
+    if (!(await s.rateCheck(ip, 15, 600))) return res.status(429).json({ error: "rate_limited" });
     const device = deviceId(req, res);
     const fresh = await s.deviceVote(device, id);
     if (!fresh) return res.status(409).json({ error: "already_voted" });

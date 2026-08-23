@@ -475,7 +475,7 @@ async function vote(p) {
       body: JSON.stringify({ id: p.id }),
     });
     const d = await r.json().catch(() => ({}));
-    if (!r.ok) throw (r.status === 409 ? 'used' : 0);
+    if (!r.ok) throw (r.status === 409 ? 'used' : r.status === 429 ? 'rate' : 0);
     p.votes = d.votes;          // settle on the server's number
     localStorage.setItem('tf_voted', JSON.stringify([...voted]));
   } catch (e) {
@@ -484,6 +484,9 @@ async function vote(p) {
       // the server already has this device's vote for this photo — keep it marked voted
       localStorage.setItem('tf_voted', JSON.stringify([...voted]));
       showErr(p, 'سبق أن صوّتت لهذه الصورة من هذا الجهاز.');
+    } else if (e === 'rate') {
+      voted.delete(p.id);
+      showErr(p, 'محاولات كثيرة من اتصالك — انتظر دقائق وحاول مرة أخرى.');
     } else {
       voted.delete(p.id);
       showErr(p, 'لم يُسجَّل صوتك، حاول مرة أخرى.');
