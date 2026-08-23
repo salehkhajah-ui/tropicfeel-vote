@@ -82,6 +82,13 @@ const redisStore = {
   async deviceUnvote(deviceId, photoId) {
     await R().del("device:" + deviceId + ":" + photoId);
   },
+  // sliding IP throttle: true = allowed
+  async rateCheck(ip, limit, windowSec) {
+    const key = "rl:" + ip + ":" + Math.floor(Date.now() / (windowSec * 1000));
+    const n = await R().incr(key);
+    if (n === 1) await R().expire(key, windowSec);
+    return n <= limit;
+  },
 };
 
 // ---------- Supabase / Postgres backend ----------
@@ -103,6 +110,9 @@ function pgInit() {
     await P().query(`CREATE TABLE IF NOT EXISTS device_votes (
       device_id text NOT NULL, photo_id text NOT NULL, created_at timestamptz DEFAULT now(),
       PRIMARY KEY (device_id, photo_id))`);
+    await P().query(`CREATE TABLE IF NOT EXISTS vote_ips (
+      ip text NOT NULL, created_at timestamptz NOT NULL DEFAULT now())`);
+    await P().query(`CREATE INDEX IF NOT EXISTS vote_ips_ip_ts ON vote_ips (ip, created_at)`);
     const c = await P().query("SELECT count(*)::int AS n FROM photos");
     if (!c.rows[0].n) {
       for (const s of SEED) {
@@ -155,6 +165,20 @@ const pgStore = {
   async deviceUnvote(deviceId, photoId) {
     await pgInit();
     await P().query("DELETE FROM device_votes WHERE device_id = $1 AND photo_id = $2", [deviceId, photoId]);
+  },
+  // sliding IP throttle: true = allowed
+  async rateCheck(ip, limit, windowSec) {
+    await pgInit();
+    const r = await P().query(
+      "SELECT count(*)::int AS n FROM vote_ips WHERE ip = $1 AND created_at > now() - ($2 || ' seconds')::interval",
+      [ip, String(windowSec)],
+    );
+    if (r.rows[0].n >= limit) return false;
+    await P().query("INSERT INTO vote_ips (ip) VALUES ($1)", [ip]);
+    if (Math.random() < 0.02) {
+      await P().query("DELETE FROM vote_ips WHERE created_at < now() - interval '1 hour'");
+    }
+    return true;
   },
 };
 
