@@ -1,14 +1,4 @@
-import crypto from "crypto";
-import { store } from "./_lib.js";
-
-function deviceId(req, res) {
-  const raw = req.headers.cookie || "";
-  const m = /(?:^|;\s*)tf_device=([\w-]{8,64})(?:;|$)/.exec(raw);
-  if (m) return m[1];
-  const id = crypto.randomUUID();
-  res.setHeader("set-cookie", `tf_device=${id}; Max-Age=31536000; Path=/; SameSite=Lax; Secure; HttpOnly`);
-  return id;
-}
+import { store, verifyDevice } from "./_lib.js";
 
 export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).json({ error: "method" });
@@ -16,8 +6,10 @@ export default async function handler(req, res) {
     const id = String((req.body || {}).id || "");
     const s = store();
     const ip = String(req.headers["x-forwarded-for"] || req.socket.remoteAddress || "?").split(",")[0].trim();
-    if (!(await s.rateCheck(ip, 15, 600))) return res.status(429).json({ error: "rate_limited" });
-    const device = deviceId(req, res);
+    if (!(await s.rateCheck("vote:" + ip, 12, 600))) return res.status(429).json({ error: "rate_limited" });
+    // only a server-signed identity (issued on page load) may vote
+    const device = verifyDevice(req.headers.cookie);
+    if (!device) return res.status(403).json({ error: "no_token" });
     const fresh = await s.deviceVote(device, id);
     if (!fresh) return res.status(409).json({ error: "already_voted" });
     const votes = await s.vote(id);
