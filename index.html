@@ -469,13 +469,18 @@ async function vote(p) {
   voted.add(p.id);
   syncPhoto(p);
   try {
-    const r = await fetch('/api/vote', {
+    const post = () => fetch('/api/vote', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ id: p.id }),
     });
+    let r = await post();
+    if (r.status === 403) {       // no signed identity yet — fetch one, retry once
+      await fetch('/api/data');
+      r = await post();
+    }
     const d = await r.json().catch(() => ({}));
-    if (!r.ok) throw (r.status === 409 ? 'used' : r.status === 429 ? 'rate' : 0);
+    if (!r.ok) throw (r.status === 409 ? 'used' : r.status === 429 ? 'rate' : r.status === 403 ? 'token' : 0);
     p.votes = d.votes;          // settle on the server's number
     localStorage.setItem('tf_voted', JSON.stringify([...voted]));
   } catch (e) {
@@ -487,6 +492,9 @@ async function vote(p) {
     } else if (e === 'rate') {
       voted.delete(p.id);
       showErr(p, 'محاولات كثيرة من اتصالك — انتظر دقائق وحاول مرة أخرى.');
+    } else if (e === 'token') {
+      voted.delete(p.id);
+      showErr(p, 'تعذّر التحقق من جهازك — حدّث الصفحة وحاول مرة أخرى.');
     } else {
       voted.delete(p.id);
       showErr(p, 'لم يُسجَّل صوتك، حاول مرة أخرى.');

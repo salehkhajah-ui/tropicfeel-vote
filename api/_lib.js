@@ -1,3 +1,4 @@
+import crypto from "crypto";
 import { Redis } from "@upstash/redis";
 import pg from "pg";
 
@@ -5,6 +6,26 @@ export const ADMIN_KEY = process.env.ADMIN_KEY || "tropic-2026";
 export function isAdmin(req) {
   return req.headers["x-admin-key"] === ADMIN_KEY;
 }
+
+// ---------- signed device identity ----------
+// value: v1.<uuid>.<issued-ms>.<hmac>  — only the server can mint one,
+// and it is only minted on page load (api/data), never on the vote call.
+const hmac = (s) => crypto.createHmac("sha256", ADMIN_KEY).update(s).digest("hex").slice(0, 32);
+export function mintDevice() {
+  const id = crypto.randomUUID();
+  const ts = Date.now();
+  return `v1.${id}.${ts}.${hmac(id + "." + ts)}`;
+}
+export function verifyDevice(cookieHeader) {
+  const m = /(?:^|;\s*)tf_device=v1\.([\w-]{8,64})\.(\d{10,16})\.([a-f0-9]{32})(?:;|$)/.exec(cookieHeader || "");
+  if (!m) return null;
+  const [, id, ts, sig] = m;
+  const expect = hmac(id + "." + ts);
+  if (sig.length !== expect.length || !crypto.timingSafeEqual(Buffer.from(sig), Buffer.from(expect))) return null;
+  return id;
+}
+export const deviceCookie = (v) =>
+  `tf_device=${v}; Max-Age=31536000; Path=/; SameSite=Lax; Secure; HttpOnly`;
 
 const SEED = [1, 2, 3].map((i) => ({
   id: "seed" + i,
