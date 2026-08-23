@@ -20,7 +20,7 @@ export default async function handler(req, res) {
     if (!fresh) return res.status(409).json({ error: "already_voted" });
     const votes = await s.vote(id);
     if (votes === null) {
-      await s.deviceUnvote(device); // don't burn the device's vote on a bad id
+      await s.deviceUnvote(device, id); // don't burn the vote on a bad id
       return res.status(404).json({ error: "not found" });
     }
     res.json({ id, votes });

@@ -74,13 +74,13 @@ const redisStore = {
   async img(id) {
     return await R().get("img:" + id);
   },
-  // one vote per device: returns false if this device already voted
+  // one vote per photo per device: returns false if this device already voted for this photo
   async deviceVote(deviceId, photoId) {
-    const ok = await R().set("device:" + deviceId, photoId, { nx: true });
+    const ok = await R().set("device:" + deviceId + ":" + photoId, 1, { nx: true });
     return ok === "OK" || ok === true;
   },
-  async deviceUnvote(deviceId) {
-    await R().del("device:" + deviceId);
+  async deviceUnvote(deviceId, photoId) {
+    await R().del("device:" + deviceId + ":" + photoId);
   },
 };
 
@@ -100,8 +100,9 @@ function pgInit() {
       id text PRIMARY KEY, code text NOT NULL, url text NOT NULL DEFAULT '',
       votes int NOT NULL DEFAULT 0, created_at timestamptz DEFAULT now())`);
     await P().query(`CREATE TABLE IF NOT EXISTS images (id text PRIMARY KEY, data text NOT NULL)`);
-    await P().query(`CREATE TABLE IF NOT EXISTS devices (
-      id text PRIMARY KEY, photo_id text NOT NULL, created_at timestamptz DEFAULT now())`);
+    await P().query(`CREATE TABLE IF NOT EXISTS device_votes (
+      device_id text NOT NULL, photo_id text NOT NULL, created_at timestamptz DEFAULT now(),
+      PRIMARY KEY (device_id, photo_id))`);
     const c = await P().query("SELECT count(*)::int AS n FROM photos");
     if (!c.rows[0].n) {
       for (const s of SEED) {
@@ -142,18 +143,18 @@ const pgStore = {
     const r = await P().query("SELECT data FROM images WHERE id = $1", [id]);
     return r.rows[0] ? r.rows[0].data : null;
   },
-  // one vote per device: returns false if this device already voted
+  // one vote per photo per device: returns false if this device already voted for this photo
   async deviceVote(deviceId, photoId) {
     await pgInit();
     const r = await P().query(
-      "INSERT INTO devices (id, photo_id) VALUES ($1, $2) ON CONFLICT DO NOTHING",
+      "INSERT INTO device_votes (device_id, photo_id) VALUES ($1, $2) ON CONFLICT DO NOTHING",
       [deviceId, photoId],
     );
     return r.rowCount > 0;
   },
-  async deviceUnvote(deviceId) {
+  async deviceUnvote(deviceId, photoId) {
     await pgInit();
-    await P().query("DELETE FROM devices WHERE id = $1", [deviceId]);
+    await P().query("DELETE FROM device_votes WHERE device_id = $1 AND photo_id = $2", [deviceId, photoId]);
   },
 };
 
