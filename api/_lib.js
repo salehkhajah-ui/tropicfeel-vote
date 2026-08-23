@@ -74,6 +74,14 @@ const redisStore = {
   async img(id) {
     return await R().get("img:" + id);
   },
+  // one vote per device: returns false if this device already voted
+  async deviceVote(deviceId, photoId) {
+    const ok = await R().set("device:" + deviceId, photoId, { nx: true });
+    return ok === "OK" || ok === true;
+  },
+  async deviceUnvote(deviceId) {
+    await R().del("device:" + deviceId);
+  },
 };
 
 // ---------- Supabase / Postgres backend ----------
@@ -92,6 +100,8 @@ function pgInit() {
       id text PRIMARY KEY, code text NOT NULL, url text NOT NULL DEFAULT '',
       votes int NOT NULL DEFAULT 0, created_at timestamptz DEFAULT now())`);
     await P().query(`CREATE TABLE IF NOT EXISTS images (id text PRIMARY KEY, data text NOT NULL)`);
+    await P().query(`CREATE TABLE IF NOT EXISTS devices (
+      id text PRIMARY KEY, photo_id text NOT NULL, created_at timestamptz DEFAULT now())`);
     const c = await P().query("SELECT count(*)::int AS n FROM photos");
     if (!c.rows[0].n) {
       for (const s of SEED) {
@@ -131,6 +141,19 @@ const pgStore = {
     await pgInit();
     const r = await P().query("SELECT data FROM images WHERE id = $1", [id]);
     return r.rows[0] ? r.rows[0].data : null;
+  },
+  // one vote per device: returns false if this device already voted
+  async deviceVote(deviceId, photoId) {
+    await pgInit();
+    const r = await P().query(
+      "INSERT INTO devices (id, photo_id) VALUES ($1, $2) ON CONFLICT DO NOTHING",
+      [deviceId, photoId],
+    );
+    return r.rowCount > 0;
+  },
+  async deviceUnvote(deviceId) {
+    await pgInit();
+    await P().query("DELETE FROM devices WHERE id = $1", [deviceId]);
   },
 };
 
