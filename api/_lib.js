@@ -27,6 +27,28 @@ export function verifyDevice(cookieHeader) {
 export const deviceCookie = (v) =>
   `tf_device=${v}; Max-Age=31536000; Path=/; SameSite=Lax; Secure; HttpOnly`;
 
+// ---------- human verification (Cloudflare Turnstile, optional) ----------
+export const TURNSTILE_SITE_KEY = process.env.TURNSTILE_SITE_KEY || "";
+const TURNSTILE_SECRET = process.env.TURNSTILE_SECRET_KEY || "";
+export const captchaEnabled = () => !!(TURNSTILE_SITE_KEY && TURNSTILE_SECRET);
+export async function verifyCaptcha(token, ip) {
+  if (!captchaEnabled()) return true; // inert until keys are configured
+  if (!token) return false;
+  try {
+    const body = new URLSearchParams({ secret: TURNSTILE_SECRET, response: token });
+    if (ip) body.set("remoteip", ip);
+    const r = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
+      method: "POST",
+      headers: { "content-type": "application/x-www-form-urlencoded" },
+      body,
+    });
+    const d = await r.json();
+    return !!d.success;
+  } catch {
+    return false; // fail closed when verification can't complete
+  }
+}
+
 const SEED = [1, 2, 3].map((i) => ({
   id: "seed" + i,
   code: String(i).padStart(3, "0"),
@@ -110,6 +132,13 @@ const redisStore = {
     if (n === 1) await R().expire(key, windowSec);
     return n <= limit;
   },
+  // global velocity cap per photo: true = allowed
+  async photoRateOk(photoId, limit, windowSec) {
+    const key = "prate:" + photoId + ":" + Math.floor(Date.now() / (windowSec * 1000));
+    const n = await R().incr(key);
+    if (n === 1) await R().expire(key, windowSec);
+    return n <= limit;
+  },
 };
 
 // ---------- Supabase / Postgres backend ----------
@@ -134,6 +163,7 @@ function pgInit() {
     await P().query(`CREATE TABLE IF NOT EXISTS vote_ips (
       ip text NOT NULL, created_at timestamptz NOT NULL DEFAULT now())`);
     await P().query(`CREATE INDEX IF NOT EXISTS vote_ips_ip_ts ON vote_ips (ip, created_at)`);
+    await P().query(`CREATE INDEX IF NOT EXISTS device_votes_photo_ts ON device_votes (photo_id, created_at)`);
     const c = await P().query("SELECT count(*)::int AS n FROM photos");
     if (!c.rows[0].n) {
       for (const s of SEED) {
@@ -200,6 +230,15 @@ const pgStore = {
       await P().query("DELETE FROM vote_ips WHERE created_at < now() - interval '1 hour'");
     }
     return true;
+  },
+  // global velocity cap per photo, counted from the device_votes just recorded
+  async photoRateOk(photoId, limit, windowSec) {
+    await pgInit();
+    const r = await P().query(
+      "SELECT count(*)::int AS n FROM device_votes WHERE photo_id = $1 AND created_at > now() - ($2 || ' seconds')::interval",
+      [photoId, String(windowSec)],
+    );
+    return r.rows[0].n <= limit;
   },
 };
 

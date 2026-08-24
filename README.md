@@ -40,4 +40,5 @@
 | المتغير | الوصف |
 |---|---|
 | `ADMIN_KEY` | مفتاح لوحة الإدارة — الافتراضي `tropic-2026` (يُنصح بتغييره من Settings → Environment Variables) |
+| `TURNSTILE_SITE_KEY` / `TURNSTILE_SECRET_KEY` | مفاتيح Cloudflare Turnstile (اختياري) — عند إضافتهما يُفعَّل التحقق البشري قبل التصويت |
 | `KV_REST_API_URL` / `KV_REST_API_TOKEN` | تُضاف تلقائياً عند ربط Upstash |

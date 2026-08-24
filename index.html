@@ -259,6 +259,20 @@ main section { margin-block-start: var(--section); }
   position: absolute; width: 1px; height: 1px;
   clip-path: inset(50%); overflow: hidden; white-space: nowrap;
 }
+
+/* human-verification overlay */
+.cap-overlay {
+  position: fixed; inset: 0; z-index: 120;
+  background: rgba(17, 19, 17, 0.6);
+  display: flex; align-items: center; justify-content: center;
+}
+.cap-overlay[hidden] { display: none; }
+.cap-box {
+  background: var(--paper); padding: var(--sp-6);
+  max-width: 92%; text-align: center;
+}
+.cap-box p { font-size: var(--fs-3); font-weight: 700; margin-block-end: var(--sp-4); }
+#capWidget { display: flex; justify-content: center; min-height: 65px; }
 </style>
 </head>
 <body>
@@ -335,6 +349,14 @@ main section { margin-block-start: var(--section); }
   <span>تابعونا على انستغرام <a href="https://instagram.com/tropicfeelar" target="_blank" rel="noopener">@tropicfeelar</a></span>
 </footer>
 
+<!-- human-verification overlay, shown only when a Turnstile challenge needs interaction -->
+<div class="cap-overlay" id="capOverlay" hidden>
+  <div class="cap-box">
+    <p>تأكيد أنك لست روبوت</p>
+    <div id="capWidget"></div>
+  </div>
+</div>
+
 <div class="lb" id="lb" role="dialog" aria-modal="true" aria-label="عرض الصورة" hidden>
   <div class="lb-top">
     <button type="button" class="lb-btn" id="lbClose" aria-label="إغلاق">
@@ -370,6 +392,39 @@ const CONFIG = {
 
 /* ---------- state ---------- */
 const voted = new Set(JSON.parse(localStorage.getItem('tf_voted') || '[]'));
+
+/* ---------- human verification (Cloudflare Turnstile, active only if configured) ---------- */
+let capKey = null, capWidgetId = null, capResolve = null;
+async function initCaptcha() {
+  try {
+    const cfg = await (await fetch('/api/config')).json();
+    capKey = cfg && cfg.captcha;
+  } catch { capKey = null; }
+  if (!capKey) return;
+  await new Promise((res) => {
+    const sc = document.createElement('script');
+    sc.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
+    sc.async = true; sc.defer = true; sc.onload = res; sc.onerror = res;
+    document.head.appendChild(sc);
+  });
+  if (!window.turnstile) { capKey = null; return; }
+  capWidgetId = window.turnstile.render('#capWidget', {
+    sitekey: capKey,
+    size: 'flexible',
+    callback: (token) => { $('capOverlay').hidden = true; if (capResolve) { capResolve(token); capResolve = null; } },
+    'error-callback': () => { if (capResolve) { capResolve(null); capResolve = null; } },
+  });
+}
+// returns a fresh single-use token, prompting the user only if the challenge needs it
+function captchaToken() {
+  if (!capKey || !window.turnstile) return Promise.resolve(undefined);
+  return new Promise((resolve) => {
+    capResolve = resolve;
+    $('capOverlay').hidden = false;
+    try { window.turnstile.reset(capWidgetId); window.turnstile.execute(capWidgetId); }
+    catch { resolve(null); capResolve = null; }
+  });
+}
 let photos = [];                 // [{id, code, url, votes}]
 let sortMode = 'new';
 let lbIndex = -1;                // index into current lightbox order (gallery order)
@@ -469,18 +524,23 @@ async function vote(p) {
   voted.add(p.id);
   syncPhoto(p);
   try {
+    const token = await captchaToken();          // undefined when captcha is off
     const post = () => fetch('/api/vote', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ id: p.id }),
+      body: JSON.stringify({ id: p.id, token }),
     });
     let r = await post();
     if (r.status === 403) {       // no signed identity yet — fetch one, retry once
-      await fetch('/api/data');
-      r = await post();
+      const d0 = await r.json().catch(() => ({}));
+      if (d0.error !== 'captcha') { await fetch('/api/data'); r = await post(); }
+      else throw 'captcha';
     }
     const d = await r.json().catch(() => ({}));
-    if (!r.ok) throw (r.status === 409 ? 'used' : r.status === 429 ? 'rate' : r.status === 403 ? 'token' : 0);
+    if (!r.ok) throw (
+      r.status === 409 ? 'used' :
+      r.status === 429 ? (d.error === 'photo_busy' ? 'busy' : 'rate') :
+      r.status === 403 ? (d.error === 'captcha' ? 'captcha' : 'token') : 0);
     p.votes = d.votes;          // settle on the server's number
     localStorage.setItem('tf_voted', JSON.stringify([...voted]));
   } catch (e) {
@@ -492,6 +552,12 @@ async function vote(p) {
     } else if (e === 'rate') {
       voted.delete(p.id);
       showErr(p, 'محاولات كثيرة من اتصالك — انتظر دقائق وحاول مرة أخرى.');
+    } else if (e === 'busy') {
+      voted.delete(p.id);
+      showErr(p, 'ضغط كبير على هذه الصورة الآن — حاول بعد قليل.');
+    } else if (e === 'captcha') {
+      voted.delete(p.id);
+      showErr(p, 'تعذّر التحقق أنك لست روبوت — حاول مرة أخرى.');
     } else if (e === 'token') {
       voted.delete(p.id);
       showErr(p, 'تعذّر التحقق من جهازك — حدّث الصفحة وحاول مرة أخرى.');
@@ -784,6 +850,7 @@ async function refresh() {
   } catch {}
 }
 load();
+initCaptcha();
 setInterval(refresh, 20000);
 </script>
 </body>
