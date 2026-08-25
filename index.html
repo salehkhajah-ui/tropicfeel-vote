@@ -325,7 +325,7 @@ main section { margin-block-start: var(--section); }
       <h2>كل المشاركات</h2>
       <div class="sort" role="group" aria-label="ترتيب المشاركات">
         <button type="button" data-sort="new" aria-pressed="true">الأحدث</button>
-        <button type="button" data-sort="top" aria-pressed="false">الأعلى تصويتاً</button>
+        <button type="button" data-sort="top" aria-pressed="false" id="sortTop" hidden>الأعلى تصويتاً</button>
         <span class="gallery-count num" id="galleryCount"></span>
       </div>
     </div>
@@ -676,7 +676,7 @@ function topList() {
 }
 function renderRail() {
   const list = topList();
-  $('leaderboard').hidden = list.length < 2;
+  $('leaderboard').hidden = !closed() || list.length < 2;   // ranking hidden until the contest closes
   railOrder = list.map((p) => p.id);
   const rail = $('rail');
   rail.textContent = '';
@@ -734,6 +734,7 @@ function renderHero() {
 function renderStatus() {
   const phase = $('statusPhase');
   const meta = $('statusMeta');
+  const st = $('sortTop'); if (st) st.hidden = !closed();   // "most voted" sort appears only after close
   if (closed()) {
     phase.textContent = 'انتهى التصويت';
     meta.textContent = 'شكراً لكل من صوّت — النتائج على انستغرام';
