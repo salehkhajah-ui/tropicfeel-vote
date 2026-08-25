@@ -132,6 +132,10 @@ const redisStore = {
     if (n === 1) await R().expire(key, windowSec);
     return n <= limit;
   },
+  async report() {
+    // Redis backend keeps no per-vote history; report is Postgres-only.
+    return { generated_at: new Date().toISOString(), note: "detailed report available on the Postgres backend only", photos: await this.list() };
+  },
   // global velocity cap per photo: true = allowed
   async photoRateOk(photoId, limit, windowSec) {
     const key = "prate:" + photoId + ":" + Math.floor(Date.now() / (windowSec * 1000));
@@ -239,6 +243,35 @@ const pgStore = {
       [photoId, String(windowSec)],
     );
     return r.rows[0].n <= limit;
+  },
+  // read-only forensic report (admin only). device_votes/vote_ips exist only
+  // since the anti-fraud tables were added, so this covers votes from then on.
+  async report() {
+    await pgInit();
+    const photos = (await P().query("SELECT code, votes FROM photos ORDER BY code")).rows;
+    // tracked votes + distinct devices per photo (since tracking began)
+    const perPhoto = (await P().query(
+      `SELECT p.code,
+              count(d.*)::int AS tracked_votes,
+              count(DISTINCT d.device_id)::int AS devices,
+              min(d.created_at) AS first_tracked,
+              max(d.created_at) AS last_tracked
+       FROM photos p LEFT JOIN device_votes d ON d.photo_id = p.id
+       GROUP BY p.code ORDER BY p.code`,
+    )).rows;
+    // hourly tracked-vote volume across all photos (last 48h)
+    const hourly = (await P().query(
+      `SELECT to_char(date_trunc('hour', created_at), 'MM-DD HH24:00') AS hour, count(*)::int AS votes
+       FROM device_votes WHERE created_at > now() - interval '48 hours'
+       GROUP BY 1 ORDER BY 1`,
+    )).rows;
+    // IP concentration (last 48h): how many vote attempts each IP made
+    const ips = (await P().query(
+      `SELECT ip, count(*)::int AS attempts, min(created_at) AS first, max(created_at) AS last
+       FROM vote_ips WHERE created_at > now() - interval '48 hours'
+       GROUP BY ip HAVING count(*) > 5 ORDER BY count(*) DESC LIMIT 25`,
+    )).rows;
+    return { generated_at: new Date().toISOString(), photos, perPhoto, hourly, ips };
   },
 };
 
