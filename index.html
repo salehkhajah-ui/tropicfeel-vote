@@ -142,6 +142,7 @@ main section { margin-block-start: var(--section); }
 }
 .tile-code { font-size: var(--fs-2); font-weight: 700; }
 .tile-votes { color: var(--muted); font-size: var(--fs-2); white-space: nowrap; }
+.tile-mine { color: var(--muted); font-size: var(--fs-1); white-space: nowrap; }
 .tile-err { font-size: var(--fs-1); line-height: var(--lh-1); color: var(--ink); margin-block-start: var(--sp-1); }
 
 /* ============ vote button + states ============ */
@@ -392,7 +393,7 @@ main section { margin-block-start: var(--section); }
   </div>
   <div class="lb-bar num">
     <span class="lb-code" id="lbCode"></span>
-    <span class="lb-votes"><span class="odo" id="lbOdo" aria-live="polite"></span> صوت</span>
+    <span class="lb-votes num" id="lbMine" aria-live="polite"></span>
     <button type="button" class="vote-btn" id="lbVote">صوّت</button>
     <button type="button" class="lb-btn" id="lbShare">مشاركة الرابط</button>
     <span class="lb-err" id="lbErr" role="status"></span>
@@ -410,6 +411,10 @@ const CONFIG = {
 
 /* ---------- state ---------- */
 const voted = new Set(JSON.parse(localStorage.getItem('tf_voted') || '[]'));
+// vote counts are hidden from the public; each voter only sees their own vote number
+let voteNums = {};
+try { voteNums = JSON.parse(localStorage.getItem('tf_vote_num') || '{}'); } catch {}
+const mineText = (p) => (voted.has(p.id) && voteNums[p.id]) ? 'صوتك رقم ' + voteNums[p.id] : '';
 
 /* ---------- human verification (Cloudflare Turnstile, active only if configured) ---------- */
 let capKey = null, capWidgetId = null, capResolve = null;
@@ -513,14 +518,14 @@ function syncPhoto(p) {
   const tile = tileEls.get(p.id);
   if (tile) {
     tile.classList.toggle('voted', voted.has(p.id));
-    odoSet(tile.querySelector('.odo'), p.votes);
+    const mine = tile.querySelector('.tile-mine');
+    if (mine) mine.textContent = mineText(p);
     voteLabel(tile.querySelector('.vote-btn'), p);
   }
   if (lbIndex >= 0 && sorted()[lbIndex] && sorted()[lbIndex].id === p.id) {
-    odoSet($('lbOdo'), p.votes);
+    $('lbMine').textContent = mineText(p);
     voteLabel($('lbVote'), p);
   }
-  renderRailCounts();
 }
 function showErr(p, msg) {
   const tile = tileEls.get(p.id);
@@ -560,7 +565,9 @@ async function vote(p) {
       r.status === 429 ? (d.error === 'photo_busy' ? 'busy' : 'rate') :
       r.status === 403 ? (d.error === 'captcha' ? 'captcha' : 'token') : 0);
     p.votes = d.votes;          // settle on the server's number
+    voteNums[p.id] = d.votes;   // the voter's own number (their vote is the Nth for this photo)
     localStorage.setItem('tf_voted', JSON.stringify([...voted]));
+    localStorage.setItem('tf_vote_num', JSON.stringify(voteNums));
   } catch (e) {
     p.votes -= 1;               // roll the digits back down
     if (e === 'used') {
@@ -617,7 +624,7 @@ function tile(p, i) {
   const cap = document.createElement('div');
   cap.className = 'tile-caption num';
   cap.innerHTML = '<span class="tile-code">#' + p.code + '</span>' +
-    '<span class="tile-votes"><span class="odo" aria-live="polite"></span> صوت</span>';
+    '<span class="tile-mine num" aria-live="polite"></span>';
   const btn = document.createElement('button');
   btn.type = 'button';
   btn.className = 'vote-btn';
@@ -626,7 +633,7 @@ function tile(p, i) {
 
   el.appendChild(media);
   el.appendChild(cap);
-  odoInit(cap.querySelector('.odo'), p.votes);
+  cap.querySelector('.tile-mine').textContent = mineText(p);
   voteLabel(btn, p);
   return el;
 }
@@ -686,19 +693,9 @@ function renderRail() {
     el.appendChild(media);
     const cap = document.createElement('div');
     cap.className = 'tile-caption num';
-    cap.innerHTML = '<span class="tile-code">#' + p.code + '</span>' +
-      '<span class="tile-votes"><span class="odo"></span> صوت</span>';
+    cap.innerHTML = '<span class="tile-code">#' + p.code + '</span>';
     el.appendChild(cap);
-    odoInit(cap.querySelector('.odo'), p.votes);
     rail.appendChild(el);
-  });
-}
-function renderRailCounts() {
-  const list = topList();
-  if (list.map((p) => p.id).join() !== railOrder.join()) return renderRail();
-  list.forEach((p) => {
-    const el = $('rail').querySelector('[data-id="' + p.id + '"] .odo');
-    if (el) odoSet(el, p.votes);
   });
 }
 
@@ -771,7 +768,7 @@ function renderLb() {
   $('lbImg').alt = 'مشاركة رقم ' + p.code + ' في مسابقة الصور';
   $('lbCode').textContent = '#' + p.code;
   $('lbErr').textContent = '';
-  odoInit($('lbOdo'), p.votes);
+  $('lbMine').textContent = mineText(p);
   voteLabel($('lbVote'), p);
   $('lbVote').onclick = () => vote(p);
   history.replaceState(null, '', '#p' + p.code);
