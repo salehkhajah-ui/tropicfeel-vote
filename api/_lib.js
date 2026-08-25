@@ -271,7 +271,13 @@ const pgStore = {
        FROM vote_ips WHERE created_at > now() - interval '48 hours'
        GROUP BY ip HAVING count(*) > 5 ORDER BY count(*) DESC LIMIT 25`,
     )).rows;
-    return { generated_at: new Date().toISOString(), photos, perPhoto, hourly, ips };
+    // per-photo hourly tracked-vote counts — lets a caller classify organic trickle vs attack bursts
+    const perPhotoHourly = (await P().query(
+      `SELECT p.code, to_char(date_trunc('hour', d.created_at), 'YYYY-MM-DD"T"HH24') AS hour, count(*)::int AS n
+       FROM device_votes d JOIN photos p ON p.id = d.photo_id
+       GROUP BY 1, 2 ORDER BY 1, 2`,
+    )).rows;
+    return { generated_at: new Date().toISOString(), photos, perPhoto, hourly, ips, perPhotoHourly };
   },
 };
 
