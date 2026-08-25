@@ -1,6 +1,6 @@
 import { store, verifyDevice, verifyCaptcha } from "./_lib.js";
 
-const PHOTO_CAP = 40;        // max votes any single photo may gain per hour (anti-stuffing)
+const PHOTO_CAP = 10;        // max votes any single photo may gain per hour (anti-stuffing; organic is 1-3/h)
 const PHOTO_WINDOW = 3600;
 
 export default async function handler(req, res) {
