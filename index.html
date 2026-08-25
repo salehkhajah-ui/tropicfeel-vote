@@ -199,6 +199,22 @@ main section { margin-block-start: var(--section); }
 .rules-col h3 { font-size: var(--fs-4); line-height: var(--lh-4); font-weight: 700; margin-block-end: var(--sp-2); }
 .rules-col p { font-size: var(--fs-2); line-height: var(--lh-2); color: var(--muted); max-width: 70ch; }
 
+/* ============ terms ============ */
+.terms { padding: var(--sp-7) var(--gutter); border-block-start: var(--hairline); }
+.terms-inner { max-width: 70ch; margin-inline: auto; }
+.terms h2 { font-size: var(--fs-4); line-height: var(--lh-4); font-weight: 700; margin-block-end: var(--sp-4); }
+.terms ol { list-style: none; counter-reset: t; }
+.terms li {
+  counter-increment: t; position: relative;
+  padding-inline-start: var(--sp-6); margin-block-end: var(--sp-3);
+  font-size: var(--fs-2); line-height: var(--lh-2); color: var(--muted);
+}
+.terms li::before {
+  content: counter(t); position: absolute; inset-inline-start: 0; top: 0;
+  font-weight: 700; color: var(--ink); font-variant-numeric: tabular-nums;
+}
+.terms li strong { color: var(--ink); font-weight: 700; }
+
 /* ============ footer ============ */
 .site-footer {
   margin-block-start: var(--section);
@@ -283,7 +299,8 @@ main section { margin-block-start: var(--section); }
   <nav class="site-nav" aria-label="التنقل">
     <a href="#gallery">التصويت</a>
     <a href="#leaderboard">الترتيب</a>
-    <a href="#rules">الشروط</a>
+    <a href="#rules">الجائزة</a>
+    <a href="#terms">الأحكام</a>
   </nav>
 </header>
 
@@ -340,6 +357,20 @@ main section { margin-block-start: var(--section); }
         <h3>كيف تشارك</h3>
         <p>صوّر سفرتك أو طلعتك مع تروبيكفيل وانشرها في ستوري انستغرام مع منشن @tropicfeelar — تُضاف صورتك إلى المسابقة برقم خاص بها. التصويت مفتوح للجميع — صوت واحد لكل صورة من كل جهاز.</p>
       </div>
+    </div>
+  </section>
+
+  <section id="terms" class="terms" aria-label="الشروط والأحكام">
+    <div class="terms-inner">
+      <h2>الشروط والأحكام</h2>
+      <ol>
+        <li>التصويت مفتوح للجميع بصوت واحد لكل صورة من كل جهاز، ويجب أن يتم بشكل شخصي ويدوي.</li>
+        <li><strong>لا يجوز</strong> استخدام أي وسائل إلكترونية أو برمجية أو آلية — من روبوتات أو سكربتات أو خوادم وكيلة (بروكسي) أو أي أداة — بهدف زيادة الأصوات أو التلاعب بها أو تغيير نتائج التصويت بأي صورة.</li>
+        <li><strong>سيتم شطب جميع الأصوات التي يثبت أنها تمت بوسائل مزيفة أو آلية</strong>، وتُحتسب النتيجة النهائية على الأصوات الحقيقية فقط.</li>
+        <li>يحق للمنظّم استبعاد أي مشاركة يثبت تورّطها في التلاعب بالتصويت، ولو أدى ذلك إلى إلغاء فوزها.</li>
+        <li>قرارات المنظّم بشأن صحة الأصوات والنتائج النهائية نهائية وغير قابلة للطعن.</li>
+        <li>يحتفظ المنظّم بحق تعديل هذه الشروط أو مدة المسابقة عند الحاجة، ويُعلن أي تغيير على الحساب الرسمي.</li>
+      </ol>
     </div>
   </section>
 </main>
