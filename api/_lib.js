@@ -94,12 +94,15 @@ const redisStore = {
   async list() {
     const m = await rMeta();
     const v = m.length ? await R().mget(...m.map((p) => "votes:" + p.id)) : [];
-    return m.map((p, i) => ({ ...p, votes: Number(v[i] || 0) }));
+    const adj = (await R().hgetall("adjust")) || {};
+    return m.map((p, i) => ({ ...p, votes: Math.max(0, Number(v[i] || 0) - Number(adj[p.id] || 0)) }));
   },
   async vote(id) {
     const m = await rMeta();
     if (!m.some((p) => p.id === id)) return null;
-    return await R().incr("votes:" + id);
+    const raw = await R().incr("votes:" + id);
+    const fake = Number((await R().hget("adjust", id)) || 0);
+    return Math.max(0, raw - fake);
   },
   async add(p, image) {
     const m = await rMeta();
@@ -136,6 +139,28 @@ const redisStore = {
     // Redis backend keeps no per-vote history; report is Postgres-only.
     return { generated_at: new Date().toISOString(), note: "detailed report available on the Postgres backend only", photos: await this.list() };
   },
+  async adjustGet() {
+    const m = await rMeta();
+    const v = m.length ? await R().mget(...m.map((p) => "votes:" + p.id)) : [];
+    const adj = (await R().hgetall("adjust")) || {};
+    return m.map((p, i) => {
+      const raw = Number(v[i] || 0), fake = Number(adj[p.id] || 0);
+      return { code: p.code, raw, fake, shown: Math.max(0, raw - fake) };
+    });
+  },
+  async adjustSet(byCode) {
+    const m = await rMeta();
+    const idOf = Object.fromEntries(m.map((p) => [p.code, p.id]));
+    for (const [code, fake] of Object.entries(byCode)) {
+      const id = idOf[code];
+      if (id) await R().hset("adjust", { [id]: Math.max(0, Math.round(Number(fake) || 0)) });
+    }
+    return this.adjustGet();
+  },
+  async adjustClear() {
+    await R().del("adjust");
+    return this.adjustGet();
+  },
   // global velocity cap per photo: true = allowed
   async photoRateOk(photoId, limit, windowSec) {
     const key = "prate:" + photoId + ":" + Math.floor(Date.now() / (windowSec * 1000));
@@ -168,6 +193,8 @@ function pgInit() {
       ip text NOT NULL, created_at timestamptz NOT NULL DEFAULT now())`);
     await P().query(`CREATE INDEX IF NOT EXISTS vote_ips_ip_ts ON vote_ips (ip, created_at)`);
     await P().query(`CREATE INDEX IF NOT EXISTS device_votes_photo_ts ON device_votes (photo_id, created_at)`);
+    // per-photo fake-vote deduction: displayed count = raw votes − fake (never destroys the raw counter)
+    await P().query(`CREATE TABLE IF NOT EXISTS vote_adjust (photo_id text PRIMARY KEY, fake int NOT NULL DEFAULT 0)`);
     const c = await P().query("SELECT count(*)::int AS n FROM photos");
     if (!c.rows[0].n) {
       for (const s of SEED) {
@@ -184,13 +211,22 @@ const pgStore = {
   name: "supabase-postgres",
   async list() {
     await pgInit();
-    const r = await P().query("SELECT id, code, url, votes FROM photos ORDER BY code");
+    // displayed votes = raw − fake deduction (floored at 0); raw counter is never altered
+    const r = await P().query(
+      `SELECT p.id, p.code, p.url,
+              GREATEST(0, p.votes - COALESCE(a.fake, 0)) AS votes
+       FROM photos p LEFT JOIN vote_adjust a ON a.photo_id = p.id
+       ORDER BY p.code`,
+    );
     return r.rows;
   },
   async vote(id) {
     await pgInit();
     const r = await P().query("UPDATE photos SET votes = votes + 1 WHERE id = $1 RETURNING votes", [id]);
-    return r.rows[0] ? r.rows[0].votes : null;
+    if (!r.rows[0]) return null;
+    const a = await P().query("SELECT fake FROM vote_adjust WHERE photo_id = $1", [id]);
+    const fake = a.rows[0] ? a.rows[0].fake : 0;
+    return Math.max(0, r.rows[0].votes - fake);
   },
   async add(p, image) {
     await pgInit();
@@ -248,7 +284,11 @@ const pgStore = {
   // since the anti-fraud tables were added, so this covers votes from then on.
   async report() {
     await pgInit();
-    const photos = (await P().query("SELECT code, votes FROM photos ORDER BY code")).rows;
+    const photos = (await P().query(
+      `SELECT p.code, p.votes AS raw, COALESCE(a.fake, 0) AS fake,
+              GREATEST(0, p.votes - COALESCE(a.fake, 0)) AS votes
+       FROM photos p LEFT JOIN vote_adjust a ON a.photo_id = p.id ORDER BY p.code`,
+    )).rows;
     // tracked votes + distinct devices per photo (since tracking began)
     const perPhoto = (await P().query(
       `SELECT p.code,
@@ -278,6 +318,38 @@ const pgStore = {
        GROUP BY 1, 2 ORDER BY 1, 2`,
     )).rows;
     return { generated_at: new Date().toISOString(), photos, perPhoto, hourly, ips, perPhotoHourly };
+  },
+  // ---- fake-vote deduction controls (admin) ----
+  async adjustGet() {
+    await pgInit();
+    const r = await P().query(
+      `SELECT p.code, p.votes AS raw, COALESCE(a.fake,0) AS fake,
+              GREATEST(0, p.votes - COALESCE(a.fake,0)) AS shown
+       FROM photos p LEFT JOIN vote_adjust a ON a.photo_id = p.id ORDER BY p.code`,
+    );
+    return r.rows;
+  },
+  // map { code: fakeCount } -> upsert deductions (only listed photos changed)
+  async adjustSet(byCode) {
+    await pgInit();
+    const rows = (await P().query("SELECT id, code FROM photos")).rows;
+    const idOf = Object.fromEntries(rows.map((r) => [r.code, r.id]));
+    for (const [code, fake] of Object.entries(byCode)) {
+      const id = idOf[code];
+      if (!id) continue;
+      await P().query(
+        `INSERT INTO vote_adjust (photo_id, fake) VALUES ($1, $2)
+         ON CONFLICT (photo_id) DO UPDATE SET fake = EXCLUDED.fake`,
+        [id, Math.max(0, Math.round(Number(fake) || 0))],
+      );
+    }
+    return this.adjustGet();
+  },
+  // revert: clear all deductions so displayed = raw (dirty + every interim vote)
+  async adjustClear() {
+    await pgInit();
+    await P().query("DELETE FROM vote_adjust");
+    return this.adjustGet();
   },
 };
 
