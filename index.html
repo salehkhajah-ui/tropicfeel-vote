@@ -415,6 +415,8 @@ const voted = new Set(JSON.parse(localStorage.getItem('tf_voted') || '[]'));
 let voteNums = {};
 try { voteNums = JSON.parse(localStorage.getItem('tf_vote_num') || '{}'); } catch {}
 const mineText = (p) => (voted.has(p.id) && voteNums[p.id]) ? 'صوتك رقم ' + voteNums[p.id] : '';
+// counts are hidden while voting is open; after the contest closes they are revealed to everyone
+const capText = (p) => closed() ? (p.votes + ' صوت') : mineText(p);
 
 /* ---------- human verification (Cloudflare Turnstile, active only if configured) ---------- */
 let capKey = null, capWidgetId = null, capResolve = null;
@@ -519,11 +521,11 @@ function syncPhoto(p) {
   if (tile) {
     tile.classList.toggle('voted', voted.has(p.id));
     const mine = tile.querySelector('.tile-mine');
-    if (mine) mine.textContent = mineText(p);
+    if (mine) mine.textContent = capText(p);
     voteLabel(tile.querySelector('.vote-btn'), p);
   }
   if (lbIndex >= 0 && sorted()[lbIndex] && sorted()[lbIndex].id === p.id) {
-    $('lbMine').textContent = mineText(p);
+    $('lbMine').textContent = capText(p);
     voteLabel($('lbVote'), p);
   }
 }
@@ -633,7 +635,7 @@ function tile(p, i) {
 
   el.appendChild(media);
   el.appendChild(cap);
-  cap.querySelector('.tile-mine').textContent = mineText(p);
+  cap.querySelector('.tile-mine').textContent = capText(p);
   voteLabel(btn, p);
   return el;
 }
@@ -693,7 +695,8 @@ function renderRail() {
     el.appendChild(media);
     const cap = document.createElement('div');
     cap.className = 'tile-caption num';
-    cap.innerHTML = '<span class="tile-code">#' + p.code + '</span>';
+    cap.innerHTML = '<span class="tile-code">#' + p.code + '</span>' +
+      (closed() ? '<span class="tile-mine num">' + p.votes + ' صوت</span>' : '');
     el.appendChild(cap);
     rail.appendChild(el);
   });
@@ -768,7 +771,7 @@ function renderLb() {
   $('lbImg').alt = 'مشاركة رقم ' + p.code + ' في مسابقة الصور';
   $('lbCode').textContent = '#' + p.code;
   $('lbErr').textContent = '';
-  $('lbMine').textContent = mineText(p);
+  $('lbMine').textContent = capText(p);
   voteLabel($('lbVote'), p);
   $('lbVote').onclick = () => vote(p);
   history.replaceState(null, '', '#p' + p.code);
