@@ -412,3 +412,29 @@ details.why li { margin: 4px 0; }
 a:focus-visible, button:focus-visible, .choice:focus-visible, input:focus-visible, select:focus-visible {
   outline: 2px solid var(--green); outline-offset: 2px; border-radius: 6px;
 }
+
+/* ============================================================
+   Arabic / RTL support
+   ============================================================ */
+html[lang="ar"] body,
+html[lang="ar"] h1, html[lang="ar"] h2, html[lang="ar"] h3, html[lang="ar"] h4,
+html[lang="ar"] .btn, html[lang="ar"] .chip {
+  font-family: "Tajawal", "Inter", system-ui, sans-serif;
+  letter-spacing: 0;
+}
+html[lang="ar"] .hero h1 { line-height: 1.35; }
+html[lang="ar"] .quote-band blockquote { line-height: 1.5; }
+html[lang="ar"] .kicker, html[lang="ar"] .section-kicker,
+html[lang="ar"] .panel-title, html[lang="ar"] .step-label { letter-spacing: 0; }
+[dir="rtl"] .nav-links { margin-left: 0; margin-right: auto; }
+[dir="rtl"] .nav-links a.cta { margin-left: 0; margin-right: 8px; }
+[dir="rtl"] .nav-toggle { margin-left: 0; margin-right: auto; }
+[dir="rtl"] .kv dd { text-align: left; }
+[dir="rtl"] .ticker span { direction: ltr; display: inline-block; }
+.lang-link a { padding: 7px 13px; border-radius: 8px; font-size: 14px; color: var(--text-dim); }
+.lang-link a:hover { color: var(--text); background: var(--bg-3); }
+html[lang="ar"] .kicker, html[lang="ar"] .section-kicker, html[lang="ar"] .panel-title,
+html[lang="ar"] .step-label, html[lang="ar"] .phase .num, html[lang="ar"] .stat .label,
+html[lang="ar"] .attr, html[lang="ar"] .stat .sub {
+  font-family: "Tajawal", system-ui, sans-serif;
+}
