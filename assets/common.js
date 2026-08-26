@@ -1,4 +1,4 @@
-/* Smart Money — shared chrome (nav + footer) */
+/* Smart Money — shared chrome (nav + footer) and UI helpers */
 (function () {
   const page = document.body.dataset.page || "";
 
@@ -10,15 +10,25 @@
         <span class="brand-mark">S</span>
         <span>Smart&nbsp;Money</span>
       </a>
+      <button class="nav-toggle" aria-label="Open menu" aria-expanded="false">☰</button>
       <nav class="nav-links">
         <a href="/companies" class="${page === "companies" ? "active" : ""}">Companies</a>
         <a href="/graph" class="${page === "graph" ? "active" : ""}">Economic Graph</a>
-        <a href="/#vision" class="">Vision</a>
-        <a href="/#model" class="">Business Model</a>
+        <a href="/#vision">Vision</a>
+        <a href="/get-started" class="${page === "get-started" ? "active" : ""}">Get Your Valuation</a>
         <a href="/dashboard" class="cta ${page === "dashboard" ? "active" : ""}">Live Demo ↗</a>
       </nav>
     </div>`;
   document.body.prepend(nav);
+
+  const toggle = nav.querySelector(".nav-toggle");
+  const links = nav.querySelector(".nav-links");
+  toggle.addEventListener("click", () => {
+    const open = links.classList.toggle("open");
+    toggle.setAttribute("aria-expanded", open);
+    toggle.textContent = open ? "✕" : "☰";
+  });
+  links.addEventListener("click", () => { links.classList.remove("open"); toggle.textContent = "☰"; });
 
   const footer = document.createElement("footer");
   footer.className = "site";
@@ -32,6 +42,7 @@
       <div style="display:flex;gap:48px;flex-wrap:wrap">
         <div>
           <div class="panel-title">Product</div>
+          <p><a href="/get-started">Get Your Valuation</a></p>
           <p><a href="/companies">Company Directory</a></p>
           <p><a href="/graph">Economic Graph</a></p>
           <p><a href="/dashboard">Opportunity Dashboard</a></p>
@@ -54,4 +65,35 @@
       </div>
     </div>`;
   document.body.append(footer);
+
+  /* ---- toast helper: smToast("Saved", { undo: fn }) ---- */
+  const toastEl = document.createElement("div");
+  toastEl.id = "sm-toast";
+  toastEl.setAttribute("role", "status");
+  document.body.append(toastEl);
+  let toastTimer = null;
+  window.smToast = function (msg, opts = {}) {
+    clearTimeout(toastTimer);
+    toastEl.innerHTML = `<span>${msg}</span>`;
+    if (opts.undo) {
+      const b = document.createElement("button");
+      b.textContent = "Undo";
+      b.onclick = () => { toastEl.classList.remove("show"); opts.undo(); };
+      toastEl.append(b);
+    }
+    toastEl.classList.add("show");
+    toastTimer = setTimeout(() => toastEl.classList.remove("show"), opts.undo ? 6000 : 3200);
+  };
+
+  /* ---- per-browser demo state (approve/dismiss decisions) ---- */
+  window.smState = {
+    get() { try { return JSON.parse(localStorage.getItem("sm-actions") || "{}"); } catch { return {}; } },
+    set(id, val) {
+      try {
+        const s = window.smState.get();
+        if (val === null) delete s[id]; else s[id] = val;
+        localStorage.setItem("sm-actions", JSON.stringify(s));
+      } catch { /* storage unavailable — demo state just won't persist */ }
+    }
+  };
 })();

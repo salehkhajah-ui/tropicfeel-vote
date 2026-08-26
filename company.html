@@ -132,6 +132,8 @@
               <span class="green">${SM.fmtKD(m.value)}</span> <span class="dim">${m.valueLabel}</span>
               · <span class="gold">${m.confidence}% confidence</span>
             </div>
+            ${m.why && m.why.length ? `<details class="why"><summary>Why this match?</summary>
+              <ul>${m.why.map(w => `<li>${w}</li>`).join("")}</ul></details>` : ""}
           </div>`;
         }).join("")}
       </div>` : ""}
@@ -179,6 +181,15 @@
         ${meter("Acquisition readiness", s.acquisition, "violet")}
         ${meter("Risk profile (lower is safer)", s.risk, "red")}
         ${meter("Opportunity score", s.opportunity, "gold")}
+        <details class="why"><summary>What do these scores mean?</summary>
+          <ul>
+            <li><b>Growth</b> — revenue trajectory vs sector peers.</li>
+            <li><b>Investment readiness</b> — how prepared the company is for outside capital: disclosure quality, growth, governance.</li>
+            <li><b>Acquisition readiness</b> — how transactable it is: clean ownership, stable cash flow, succession posture.</li>
+            <li><b>Risk</b> — concentration, leverage, and volatility signals. Lower is safer.</li>
+            <li><b>Opportunity</b> — how much near-term value the graph currently sees around this company.</li>
+          </ul>
+        </details>
       </div>
 
       <div class="card">

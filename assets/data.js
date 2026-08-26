@@ -351,6 +351,43 @@ window.SM = (function () {
     }
   ];
 
+  /* Evidence behind each AI match — shown as "Why this match?" */
+  const matchWhy = {
+    m1: ["Noor Medical's storage requests grew 3 months in a row while its revenue grew 28% YoY",
+         "Falcon's occupancy dropped to 66% after a tenant exit — 6,200 m² GDP-compliant space is idle",
+         "Facilities are 15 minutes apart; Falcon already serves two healthcare tenants"],
+    m2: ["Sidra's distribution cost per delivery rose 12% over two quarters",
+         "Gulf Bridge reports 11 idle trucks on weekdays and 60%-empty return legs from KSA",
+         "Both companies already share a customer, reducing onboarding friction"],
+    m3: ["Desert Rose published a 'Saudi expansion' signal and lists an unserviceable KSA pipeline",
+         "Marina Retail holds SFDA licensing and 2,400 points of sale across KSA",
+         "Hospitality fit-out demand in KSA is growing ~15% annually in platform data"],
+    m4: ["Dana's Salmiya building is 35% vacant and flagged for renovation",
+         "Al-Deera holds Kuwait Municipality Grade A and a commercial fit-out track record",
+         "Al-Deera is already a supplier to Dana — an existing trust relationship"],
+    m5: ["Al-Sahel published a 'selling 30%' succession signal with verified financials",
+         "Sidra already buys from Al-Sahel — vertical integration would secure its supply chain",
+         "Sidra's idle second production line matches Al-Sahel's processing overflow"],
+    m6: ["Khaleej published a fleet-maintenance signal and holds 310,000 KD of slow-moving parts",
+         "Gulf Bridge operates 54 trucks with no in-house maintenance contract",
+         "Khaleej already supplies Gulf Bridge — a service upsell, not a cold introduction"],
+    m7: ["Qortuba's inventory cover is 140 days vs a sector median of 85",
+         "Bayan has 4 benched developers and ERP deployment experience in manufacturing",
+         "Estimated 260,000 KD of working capital is trapped in excess stock"]
+  };
+  matches.forEach((m) => { m.why = matchWhy[m.id] || []; });
+
+  /* Sector benchmark medians used for dashboard comparisons */
+  const benchmarks = { margin: 14, receivableDays: 64, growth: 8 };
+
+  /* Indicative EBITDA multiple ranges by industry (for the instant-valuation wizard) */
+  const multiples = {
+    "Construction": [4.2, 6.1], "Logistics": [5.0, 8.0], "Food Manufacturing": [6.4, 9.9],
+    "Retail & Distribution": [5.5, 8.5], "Warehousing": [6.0, 9.0], "Healthcare Distribution": [6.5, 10.0],
+    "Manufacturing": [5.9, 8.7], "Software & IT": [8.0, 14.0], "Food & Agriculture": [5.0, 7.5],
+    "Automotive Distribution": [5.2, 7.8], "Diversified Holding": [6.0, 9.5], "Other": [5.0, 8.0]
+  };
+
   /* Capital-allocation insights for the demo dashboard (Al-Deera's view) */
   const insights = [
     {
@@ -387,5 +424,5 @@ window.SM = (function () {
   const fmtKDfull = (n) => n.toLocaleString("en-US") + " KD";
   const byId = (id) => companies.find((c) => c.id === id);
 
-  return { companies, matches, insights, fmtKD, fmtKDfull, byId };
+  return { companies, matches, insights, benchmarks, multiples, fmtKD, fmtKDfull, byId };
 })();

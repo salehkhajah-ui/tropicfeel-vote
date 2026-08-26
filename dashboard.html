@@ -17,20 +17,59 @@
 <script src="/assets/data.js"></script>
 <script src="/assets/common.js"></script>
 <script>
-  // The demo signs you in as Al-Deera Construction — the 800K KD company from the pitch.
-  const me = SM.byId("aldeera");
+  const asId = new URLSearchParams(location.search).get("as") || "aldeera";
+  const me = SM.byId(asId) || SM.byId("aldeera");
   const today = new Date().toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
 
   const myMatches = SM.matches.filter(m => m.a === me.id || m.b === me.id);
-  const marketMatches = SM.matches.filter(m => m.a !== me.id && m.b !== me.id);
+  const marketMatches = SM.matches.filter(m => m.a !== me.id && m.b !== me.id).slice(0, 3);
+  const B = SM.benchmarks, F = me.financials;
+
+  /* --- capital-allocation insights: curated for Al-Deera, generated from data for everyone else --- */
+  function buildInsights() {
+    if (me.id === "aldeera") return SM.insights;
+    const out = [];
+    if (F.receivableDays > B.receivableDays) {
+      const freed = Math.round(F.revenue * (F.receivableDays - B.receivableDays) / 365 / 1000) * 1000;
+      out.push({ icon: "⏱", tone: "gold", title: "Receivables are your cheapest capital",
+        body: `Your receivable days (${F.receivableDays}) run ${F.receivableDays - B.receivableDays} above the sector median (${B.receivableDays}). Closing that gap would free an estimated ${SM.fmtKDfull(freed)} of working capital.`,
+        impact: "+" + SM.fmtKD(freed) + " liquidity" });
+    }
+    me.idleAssets.forEach(a => out.push({ icon: "🧩", tone: "blue", title: "Idle capacity detected",
+      body: `${a}. Listing it on the asset exchange lets nearby companies rent or absorb it.`,
+      impact: "Turn idle assets into income" }));
+    if (F.margin > B.margin + 3) {
+      out.push({ icon: "📊", tone: "green", title: "Margin strength is an acquisition currency",
+        body: `Your EBITDA margin (${F.margin}%) is well above the sector median (${B.margin}%). Companies with your profile can fund acquisitions from operating cash flow.`,
+        impact: "Acquirer-ready profile" });
+    } else if (F.margin < B.margin) {
+      out.push({ icon: "📊", tone: "violet", title: "Margin below sector median",
+        body: `Your EBITDA margin (${F.margin}%) trails the median (${B.margin}%). Benchmarked peers close this gap through purchasing consolidation and route/process optimization.`,
+        impact: "Est. +2–4 margin points available" });
+    }
+    if (F.growth < B.growth) {
+      out.push({ icon: "🌱", tone: "gold", title: "Growth trails the sector",
+        body: `Revenue growth (${F.growth}%) is below the sector median (+${B.growth}%). ${marketMatches.length} partnership opportunities in the graph could open new demand.`,
+        impact: "3 growth leads" });
+    }
+    return out.slice(0, 4);
+  }
+  const insights = buildInsights();
 
   const toneBg = { gold: "var(--gold-soft)", blue: "var(--blue-soft)", green: "var(--green-soft)", violet: "var(--violet-soft)" };
+  const valueOnTable = myMatches.reduce((n, m) => n + m.value, 0) + (me.id === "aldeera" ? 436000 : 0);
+
+  const whyBlock = (m) => m.why && m.why.length ? `
+    <details class="why"><summary>Why this match?</summary>
+      <ul>${m.why.map(w => `<li>${w}</li>`).join("")}</ul>
+    </details>` : "";
 
   const oppCard = (m, mine) => {
     const a = SM.byId(m.a), b = SM.byId(m.b);
     const other = mine ? SM.byId(m.a === me.id ? m.b : m.a) : null;
+    const state = smState.get()[m.id];
     return `
-    <div class="opp">
+    <div class="opp" id="opp-${m.id}" style="${state === "dismissed" ? "opacity:.4" : ""}">
       <div class="icon" style="background:${mine ? "var(--green-soft)" : "var(--blue-soft)"}">${m.icon}</div>
       <div class="body">
         <div class="title">
@@ -41,24 +80,49 @@
         <div class="desc">${m.detail}</div>
         <div class="value"><span class="green">${SM.fmtKD(m.value)}</span> <span class="dim">${m.valueLabel}</span>
           · <span class="gold">${m.confidence}% confidence</span> · <span class="chip" style="font-size:11px">${m.type}</span></div>
-        <div class="actions">
-          <button class="btn btn-primary btn-sm" onclick="this.textContent='✓ Approved — introduction requested';this.disabled=true">Approve introduction</button>
-          <button class="btn btn-ghost btn-sm" onclick="this.closest('.opp').style.opacity=.35;this.textContent='Dismissed';this.disabled=true">Dismiss</button>
-        </div>
+        ${whyBlock(m)}
+        <div class="actions" id="act-${m.id}">${actionButtons(m.id, state)}</div>
       </div>
     </div>`;
   };
 
+  function actionButtons(id, state) {
+    if (state === "approved") return `<span class="chip green">✓ Introduction requested</span>
+      <button class="btn btn-ghost btn-sm" onclick="act('${id}', null)">Change</button>`;
+    if (state === "dismissed") return `<span class="chip">Dismissed</span>
+      <button class="btn btn-ghost btn-sm" onclick="act('${id}', null)">Restore</button>`;
+    return `<button class="btn btn-primary btn-sm" onclick="act('${id}','approved')">Approve introduction</button>
+      <button class="btn btn-ghost btn-sm" onclick="act('${id}','dismissed')">Dismiss</button>`;
+  }
+
+  window.act = function (id, state) {
+    const prev = smState.get()[id] || null;
+    smState.set(id, state);
+    document.getElementById("act-" + id).innerHTML = actionButtons(id, state);
+    document.getElementById("opp-" + id).style.opacity = state === "dismissed" ? .4 : 1;
+    if (state === "approved") smToast("Introduction requested — both sides will be notified", { undo: () => act(id, prev) });
+    else if (state === "dismissed") smToast("Dismissed — the engine will stop suggesting this", { undo: () => act(id, prev) });
+  };
+
   document.getElementById("main").innerHTML = `
-  <div class="page-head" style="display:flex;justify-content:space-between;align-items:flex-end;gap:20px;flex-wrap:wrap">
+  <div class="demo-banner">
+    <span>🧪 <b>Demo mode</b> — you're seeing the platform through one company's eyes.</span>
+    <label style="display:flex;align-items:center;gap:8px">View as:
+      <select onchange="location.href='/dashboard?as='+this.value">
+        ${SM.companies.map(c => `<option value="${c.id}" ${c.id === me.id ? "selected" : ""}>${c.name}</option>`).join("")}
+      </select>
+    </label>
+  </div>
+
+  <div class="page-head" style="display:flex;justify-content:space-between;align-items:flex-end;gap:20px;flex-wrap:wrap;padding-top:0">
     <div>
-      <div class="panel-title" style="margin-bottom:8px">${today} · Signed in as demo company</div>
-      <h1 style="display:flex;align-items:center;gap:14px">
+      <div class="panel-title" style="margin-bottom:8px">${today}</div>
+      <h1 style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
         <span class="logo-tile" style="width:46px;height:46px;font-size:18px;border-radius:12px;background:${me.color}">${me.short}</span>
         ${me.name}
       </h1>
       <p style="margin-top:10px">Good morning. The economic graph found
-        <b class="green">${myMatches.length + SM.insights.length + marketMatches.length} new opportunities</b> overnight.
+        <b class="green">${myMatches.length + insights.length + marketMatches.length} new opportunities</b> overnight.
         Not notifications — money.</p>
     </div>
     <div style="display:flex;gap:12px;flex-wrap:wrap">
@@ -66,18 +130,21 @@
         <div class="value green">${me.scores.opportunity}<span class="dim" style="font-size:15px">/100</span></div>
         <div class="sub">▲ 4 vs last week</div></div>
       <div class="stat" style="min-width:150px"><div class="label">Est. value on table</div>
-        <div class="value gold">${SM.fmtKD(myMatches.reduce((n, m) => n + m.value, 0) + 436000)}</div>
-        <div class="sub">across ${myMatches.length + SM.insights.length} items</div></div>
+        <div class="value gold">${SM.fmtKD(valueOnTable)}</div>
+        <div class="sub">across ${myMatches.length + insights.length} items</div></div>
     </div>
   </div>
 
   <div class="split">
     <div><!-- LEFT: opportunity feed -->
-      <div class="panel-title">Deals manufactured for you</div>
-      ${myMatches.map(m => oppCard(m, true)).join("")}
+      ${myMatches.length ? `<div class="panel-title">Deals manufactured for you</div>
+        ${myMatches.map(m => oppCard(m, true)).join("")}` : `
+        <div class="panel-title">Deals manufactured for you</div>
+        <div class="card"><p class="dim" style="font-size:14.5px">No direct matches this morning — the engine re-scans the graph nightly.
+        Publishing more signals or listing idle assets typically produces matches within days.</p></div>`}
 
       <div class="panel-title" style="margin-top:30px">Capital allocation intelligence</div>
-      ${SM.insights.map(i => `
+      ${insights.map(i => `
         <div class="opp">
           <div class="icon" style="background:${toneBg[i.tone]}">${i.icon}</div>
           <div class="body">
@@ -85,13 +152,13 @@
             <div class="desc">${i.body}</div>
             <div class="value"><span class="${i.tone}">${i.impact}</span></div>
             <div class="actions">
-              <button class="btn btn-ghost btn-sm" onclick="this.textContent='✓ Added to action plan';this.disabled=true">Add to action plan</button>
+              <button class="btn btn-ghost btn-sm" onclick="smToast('Added to your action plan');this.textContent='✓ In action plan';this.disabled=true">Add to action plan</button>
             </div>
           </div>
         </div>`).join("")}
 
       <div class="panel-title" style="margin-top:30px">Elsewhere in the graph</div>
-      ${marketMatches.slice(0, 3).map(m => oppCard(m, false)).join("")}
+      ${marketMatches.map(m => oppCard(m, false)).join("")}
     </div>
 
     <div><!-- RIGHT: company intelligence rail -->
@@ -102,43 +169,43 @@
         <div class="dim" style="font-size:13px;margin-top:4px">Confidence: ${me.valuation.confidence} ·
           <a class="blue" href="/company?id=${me.id}">full profile →</a></div>
         <hr class="hr">
-        <p class="faint" style="font-size:12px">Verify your EBITDA and debt figures to tighten this range by an estimated 22%.</p>
-        <button class="btn btn-primary btn-sm" style="margin-top:10px" onclick="this.textContent='✓ Verification started';this.disabled=true">Verify financials</button>
+        <p class="faint" style="font-size:12px">Verify your financial figures to tighten this range by an estimated 20–30%.</p>
+        <button class="btn btn-primary btn-sm" style="margin-top:10px" onclick="smToast('Verification flow starts here in the full product');this.textContent='✓ Verification started';this.disabled=true">Verify financials</button>
       </div>
 
       <div class="card">
-        <div class="panel-title">Benchmark — Kuwait construction</div>
+        <div class="panel-title">Benchmark — ${me.industry}</div>
         <div class="kv">
-          <dt>EBITDA margin</dt><dd class="green">${me.financials.margin}% <span class="faint">(median 14%)</span></dd>
-          <dt>Receivable days</dt><dd class="red">${me.financials.receivableDays} <span class="faint">(median 64)</span></dd>
-          <dt>Revenue growth</dt><dd class="gold">+${me.financials.growth}% <span class="faint">(median +8%)</span></dd>
-          <dt>Top-client share</dt><dd class="red">47% <span class="faint">(median 28%)</span></dd>
+          <dt>EBITDA margin</dt><dd class="${F.margin >= B.margin ? "green" : "red"}">${F.margin}% <span class="faint">(median ${B.margin}%)</span></dd>
+          <dt>Receivable days</dt><dd class="${F.receivableDays <= B.receivableDays ? "green" : "red"}">${F.receivableDays} <span class="faint">(median ${B.receivableDays})</span></dd>
+          <dt>Revenue growth</dt><dd class="${F.growth >= B.growth ? "green" : "gold"}">${F.growth >= 0 ? "+" : ""}${F.growth}% <span class="faint">(median +${B.growth}%)</span></dd>
         </div>
       </div>
 
+      ${me.idleAssets.length ? `
       <div class="card">
         <div class="panel-title">Idle assets detected</div>
         ${me.idleAssets.map(a => `<p class="dim" style="font-size:13.5px;padding:5px 0">🧩 ${a}</p>`).join("")}
-        <button class="btn btn-ghost btn-sm" style="margin-top:10px" onclick="this.textContent='✓ Listed on the asset exchange';this.disabled=true">List idle capacity</button>
-      </div>
+        <button class="btn btn-ghost btn-sm" style="margin-top:10px" onclick="smToast('Listed — nearby companies will see this capacity');this.textContent='✓ Listed on the asset exchange';this.disabled=true">List idle capacity</button>
+      </div>` : ""}
 
       <div class="card">
         <div class="panel-title">Your published signals</div>
         ${me.signals.map(sg => `<p style="font-size:14px;padding:4px 0">📣 ${sg}</p>`).join("")}
-        <button class="btn btn-ghost btn-sm" style="margin-top:10px" onclick="this.textContent='✓ Signal editor coming in demo v2';this.disabled=true">Publish new signal</button>
+        <button class="btn btn-ghost btn-sm" style="margin-top:10px" onclick="smToast('Signal editor comes with the full product')">Publish new signal</button>
       </div>
 
       <div class="card" style="background:linear-gradient(160deg,var(--panel),#12251c)">
         <div class="panel-title">Ecosystem introductions</div>
         <p class="dim" style="font-size:13.5px">2 banks and 1 family office asked to be introduced to companies with your profile this month.</p>
-        <button class="btn btn-primary btn-sm" style="margin-top:12px" onclick="this.textContent='✓ Interest registered';this.disabled=true">Review interest</button>
+        <button class="btn btn-primary btn-sm" style="margin-top:12px" onclick="smToast('Interest registered — introductions are always double-opt-in');this.textContent='✓ Interest registered';this.disabled=true">Review interest</button>
       </div>
     </div>
   </div>
 
   <p class="faint" style="margin-top:34px;font-size:13px">
-    Demo environment: you are viewing the platform as ${me.name}, a fictional company.
-    Synergy values and insights are illustrative AI model outputs.
+    Demo environment: ${me.name} is a fictional company. Synergy values and insights are illustrative AI model outputs.
+    Your approve/dismiss choices are saved only in this browser.
   </p>`;
 </script>
 </body>

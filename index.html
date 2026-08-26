@@ -25,8 +25,8 @@
       companies take for granted.
     </p>
     <div class="cta-row">
-      <a class="btn btn-primary" href="/dashboard">See the live demo →</a>
-      <a class="btn btn-ghost" href="/graph">Explore the economic graph</a>
+      <a class="btn btn-primary" href="/get-started">Get your instant valuation →</a>
+      <a class="btn btn-ghost" href="/dashboard">See the live demo</a>
     </div>
     <p class="faint" style="margin-top:26px;font-size:13.5px">
       Discoverable · Understandable · Investable · Collaborative
@@ -86,6 +86,33 @@
     <em>investable</em> and <em>collaborative</em>."
   </blockquote>
   <div class="attr">The Smart Money mission — the Bloomberg Terminal for private companies.</div>
+</section>
+
+<!-- ================= HOW IT WORKS ================= -->
+<section class="section" id="how">
+  <div class="wrap">
+    <div class="section-kicker">How It Works</div>
+    <h2>From invisible to investable in three steps.</h2>
+    <div class="grid grid-3" style="margin-top:36px">
+      <div class="feature how-step">
+        <div class="n">1</div>
+        <h3>Create your economic profile</h3>
+        <p>Two minutes of questions gets you an instant AI valuation range. Disclose only what you choose — verified figures earn a tighter range and a trust badge.</p>
+        <p style="margin-top:14px"><a class="blue" href="/get-started">Try it now →</a></p>
+      </div>
+      <div class="feature how-step">
+        <div class="n">2</div>
+        <h3>Tell the graph what you need</h3>
+        <p>Publish signals — investors, partners, distributors, a stake for sale — and list idle assets. The engine scans the economic graph for counterparties every night.</p>
+      </div>
+      <div class="feature how-step">
+        <div class="n">3</div>
+        <h3>Approve introductions, capture value</h3>
+        <p>Each morning you get matched deals with the estimated value and the evidence behind them. One click requests a double-opt-in introduction. You stay in control.</p>
+        <p style="margin-top:14px"><a class="blue" href="/dashboard">See a live morning →</a></p>
+      </div>
+    </div>
+  </div>
 </section>
 
 <!-- ================= PLATFORM PILLARS ================= -->
@@ -253,8 +280,9 @@
     <em>Smart Money organizes the world's private economy.</em>
   </blockquote>
   <div class="attr">Starting with small businesses in Kuwait. Expanding across the GCC. Then the world.</div>
-  <div style="margin-top:34px">
-    <a class="btn btn-primary" href="/dashboard">Experience the platform →</a>
+  <div style="margin-top:34px;display:flex;gap:14px;justify-content:center;flex-wrap:wrap">
+    <a class="btn btn-primary" href="/get-started">Get your instant valuation →</a>
+    <a class="btn btn-ghost" href="/dashboard">Experience the platform</a>
   </div>
   <p class="faint" style="margin-top:30px;max-width:560px;margin-left:auto;margin-right:auto;font-size:13.5px">
     The real asset won't be the software. It will be the network of trusted private businesses —
@@ -297,8 +325,10 @@
         <div class="desc">${m.detail}</div>
         <div class="value"><span class="green">${SM.fmtKD(m.value)}</span> <span class="dim">${m.valueLabel}</span>
           · <span class="gold">${m.confidence}% match confidence</span></div>
+        <details class="why"><summary>Why this match?</summary>
+          <ul>${m.why.map(w => `<li>${w}</li>`).join("")}</ul></details>
         <div class="actions">
-          <button class="btn btn-primary btn-sm" onclick="this.textContent='✓ Introduction requested';this.disabled=true">Suggest introduction</button>
+          <button class="btn btn-primary btn-sm" onclick="smToast('Introduction requested — always double-opt-in');this.textContent='✓ Introduction requested';this.disabled=true">Suggest introduction</button>
           <span class="chip">${m.type}</span>
         </div>
       </div>`;

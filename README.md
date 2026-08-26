@@ -15,7 +15,8 @@ no dependencies, no environment variables.
 
 | Route | File | What it shows |
 |---|---|---|
-| `/` | `index.html` | The vision: the problem, mission, platform pillars, AI deal manufacturing, the 4-phase regulatory-safe roadmap, and the 4-stream business model |
+| `/` | `index.html` | The vision: the problem, mission, how-it-works, platform pillars, AI deal manufacturing, the 4-phase regulatory-safe roadmap, and the 4-stream business model |
+| `/get-started` | `get-started.html` | Instant-valuation onboarding wizard: 3 steps → AI valuation range + live matching opportunities (nothing is stored) |
 | `/companies` | `companies.html` | Company directory — search & filter by industry and intent signals, with verified vs self-reported financials and AI valuation ranges |
 | `/company?id=…` | `company.html` | A company's economic profile: identity, financial health, AI valuation with confidence & methodology, readiness scores, published opportunity signals, idle assets, and mapped relationships |
 | `/dashboard` | `dashboard.html` | The morning opportunity engine, viewed as Al-Deera Construction: AI-manufactured deals with approve/dismiss, capital allocation intelligence, benchmarks, and idle-asset listings |

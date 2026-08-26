@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Get Your Instant Valuation — Smart Money</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/style.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%232fd48a'/><text x='50' y='70' font-size='60' text-anchor='middle' font-family='monospace' font-weight='bold' fill='%2305261a'>S</text></svg>">
+</head>
+<body data-page="get-started">
+
+<main class="wrap">
+  <div class="page-head" style="text-align:center">
+    <h1>See what your business could be worth</h1>
+    <p style="margin-left:auto;margin-right:auto">Answer a few questions — about 2 minutes — and get an instant AI valuation range,
+      plus the opportunities already waiting for a company like yours. Nothing is saved in this demo.</p>
+  </div>
+
+  <div class="wizard">
+    <div class="steps"><i id="s1" class="done"></i><i id="s2"></i><i id="s3"></i></div>
+    <div class="step-label" id="step-label">Step 1 of 3 · Your company</div>
+
+    <!-- STEP 1: identity -->
+    <div class="card" id="step-1">
+      <div class="field">
+        <label for="w-name">Company name</label>
+        <input type="text" id="w-name" placeholder="e.g. Al-Bahar Trading Co.">
+      </div>
+      <div class="field">
+        <label for="w-industry">Industry</label>
+        <select id="w-industry"></select>
+      </div>
+      <div class="field">
+        <label for="w-employees">Employees</label>
+        <select id="w-employees">
+          <option>1–10</option><option>11–50</option><option selected>51–200</option><option>201–500</option><option>500+</option>
+        </select>
+      </div>
+      <div class="wizard-nav">
+        <span></span>
+        <button class="btn btn-primary" onclick="go(2)">Continue →</button>
+      </div>
+    </div>
+
+    <!-- STEP 2: financials -->
+    <div class="card" id="step-2" hidden>
+      <div class="field">
+        <label for="w-revenue">Annual revenue (KD)</label>
+        <input type="text" id="w-revenue" inputmode="numeric" placeholder="e.g. 800000">
+        <div class="hint">A rough figure is fine — you can refine and verify it later.</div>
+      </div>
+      <div class="field">
+        <label for="w-margin">Profitability</label>
+        <select id="w-margin">
+          <option value="5">Break-even to slim (~5% EBITDA)</option>
+          <option value="12" selected>Healthy (~12% EBITDA)</option>
+          <option value="20">Strong (~20% EBITDA)</option>
+          <option value="30">Exceptional (~30% EBITDA)</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="w-growth">Revenue trend, last 2 years</label>
+        <select id="w-growth">
+          <option value="-5">Declining</option>
+          <option value="3">Flat (0–5%)</option>
+          <option value="12" selected>Growing (5–20%)</option>
+          <option value="30">Fast growth (20%+)</option>
+        </select>
+      </div>
+      <div class="wizard-nav">
+        <button class="btn btn-ghost" onclick="go(1)">← Back</button>
+        <button class="btn btn-primary" onclick="go(3)">Continue →</button>
+      </div>
+    </div>
+
+    <!-- STEP 3: intent -->
+    <div class="card" id="step-3" hidden>
+      <div class="field">
+        <label>What are you looking for? <span class="faint">(pick any)</span></label>
+        <div class="choice-row" id="w-goals">
+          <span class="choice" tabindex="0">💰 Investors</span>
+          <span class="choice" tabindex="0">🤝 Partners</span>
+          <span class="choice" tabindex="0">🌍 Distributors</span>
+          <span class="choice" tabindex="0">📦 Suppliers</span>
+          <span class="choice" tabindex="0">📈 Selling a stake</span>
+          <span class="choice" tabindex="0">🏷 Selling the business</span>
+          <span class="choice" tabindex="0">🎯 Acquiring a company</span>
+          <span class="choice" tabindex="0">📋 Tenders &amp; contracts</span>
+        </div>
+      </div>
+      <div class="wizard-nav">
+        <button class="btn btn-ghost" onclick="go(2)">← Back</button>
+        <button class="btn btn-primary" onclick="finish()">See my valuation →</button>
+      </div>
+    </div>
+
+    <!-- RESULT -->
+    <div id="result" hidden></div>
+  </div>
+</main>
+
+<script src="/assets/data.js"></script>
+<script src="/assets/common.js"></script>
+<script>
+  const indSel = document.getElementById("w-industry");
+  Object.keys(SM.multiples).forEach(i => { const o = document.createElement("option"); o.textContent = i; indSel.append(o); });
+
+  document.querySelectorAll("#w-goals .choice").forEach(c => {
+    const flip = () => c.classList.toggle("on");
+    c.onclick = flip;
+    c.onkeydown = (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); flip(); } };
+  });
+
+  function go(n) {
+    if (n === 2) {
+      const name = document.getElementById("w-name").value.trim();
+      if (!name) { smToast("Please enter your company name"); document.getElementById("w-name").focus(); return; }
+    }
+    if (n === 3) {
+      const rev = parseFloat(document.getElementById("w-revenue").value.replace(/[^0-9.]/g, ""));
+      if (!rev || rev <= 0) { smToast("Please enter your annual revenue"); document.getElementById("w-revenue").focus(); return; }
+    }
+    [1, 2, 3].forEach(i => {
+      document.getElementById("step-" + i).hidden = i !== n;
+      document.getElementById("s" + i).classList.toggle("done", i <= n);
+    });
+    document.getElementById("result").hidden = true;
+    document.getElementById("step-label").textContent =
+      "Step " + n + " of 3 · " + ["Your company", "Financial snapshot", "What you're looking for"][n - 1];
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function finish() {
+    const name = document.getElementById("w-name").value.trim() || "Your company";
+    const industry = indSel.value;
+    const revenue = parseFloat(document.getElementById("w-revenue").value.replace(/[^0-9.]/g, "")) || 0;
+    const margin = parseFloat(document.getElementById("w-margin").value) / 100;
+    const growth = parseFloat(document.getElementById("w-growth").value);
+    const goals = [...document.querySelectorAll("#w-goals .choice.on")].map(c => c.textContent.replace(/^\S+\s/, ""));
+
+    const [mLow, mHigh] = SM.multiples[industry] || SM.multiples.Other;
+    const ebitda = revenue * margin;
+    const growthAdj = growth >= 20 ? 1.25 : growth >= 5 ? 1.1 : growth >= 0 ? 1 : 0.85;
+    const low = Math.round(ebitda * mLow * growthAdj / 10000) * 10000;
+    const high = Math.round(ebitda * mHigh * growthAdj / 10000) * 10000;
+
+    // sample opportunities relevant to the stated goals
+    const relevant = SM.matches.slice(0, 3);
+    const goalLine = goals.length
+      ? `Based on what you're looking for (<b>${goals.join(", ")}</b>), the graph already holds live counterparties in ${industry.toLowerCase()} and adjacent sectors.`
+      : `Publish an intent signal (investors, partners, distributors…) and the engine starts matching you immediately.`;
+
+    [1, 2, 3].forEach(i => document.getElementById("step-" + i).hidden = true);
+    document.getElementById("step-label").textContent = "Your instant AI estimate";
+    const r = document.getElementById("result");
+    r.hidden = false;
+    r.innerHTML = `
+      <div class="card" style="border-color:rgba(47,212,138,.4);text-align:center;padding:34px 26px">
+        <div class="panel-title">${name} · ${industry} · estimated enterprise value</div>
+        <div style="font-family:var(--font-display);font-size:clamp(30px,6vw,44px);font-weight:700">
+          ${low > 0 ? SM.fmtKD(low) + " – " + SM.fmtKD(high) : "—"}
+        </div>
+        <p class="dim" style="margin-top:10px;font-size:14.5px">
+          Indicative range from EBITDA multiples for ${industry} in the GCC (${mLow}x–${mHigh}x), adjusted for your growth trend.
+          Verifying financials typically tightens a range like this by ~20–30%.
+        </p>
+        <p class="faint" style="margin-top:14px;font-size:12.5px">
+          AI model estimate for decision support only — not a certified appraisal or investment advice. Nothing you entered was saved.
+        </p>
+      </div>
+      <div class="card">
+        <div class="panel-title">What happens next on Smart Money</div>
+        <p style="font-size:14.5px" class="dim">${goalLine}</p>
+        <div style="margin-top:16px">
+          ${relevant.map(m => {
+            const a = SM.byId(m.a), b = SM.byId(m.b);
+            return `<div style="padding:10px 0;border-bottom:1px solid var(--line);font-size:14px">
+              ${m.icon} <b>${a.name}</b> <span class="arrow">↔</span> <b>${b.name}</b>
+              — <span class="green mono">${SM.fmtKD(m.value)}</span> <span class="faint">${m.valueLabel}</span></div>`;
+          }).join("")}
+        </div>
+        <p class="faint" style="font-size:12.5px;margin-top:10px">Live matches currently on the platform (demo data).</p>
+        <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:18px">
+          <a class="btn btn-primary" href="/dashboard">Experience the full dashboard →</a>
+          <a class="btn btn-ghost" href="/graph">See the economic graph</a>
+        </div>
+      </div>
+      <p style="text-align:center;margin-top:18px"><button class="btn btn-ghost btn-sm" onclick="location.reload()">Start over</button></p>`;
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+</script>
+</body>
+</html>

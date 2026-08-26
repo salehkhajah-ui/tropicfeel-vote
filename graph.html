@@ -19,8 +19,14 @@
       trade relationships, competition, and <span class="green">deals the AI has manufactured</span>. Click any company. Drag to rearrange.</p>
   </div>
 
+  <div class="graph-toolbar">
+    <label class="dim" style="font-size:14px" for="focus-select">Jump to a company:</label>
+    <select id="focus-select"><option value="">— pick one —</option></select>
+  </div>
+
   <div id="graph-shell">
     <canvas id="graph-canvas"></canvas>
+    <div id="graph-hint">👆 Click a company · drag to rearrange</div>
     <div id="graph-panel"></div>
   </div>
 
@@ -186,8 +192,24 @@
   }
   if (selected) showPanel(selected);
 
+  /* company picker */
+  const focusSel = document.getElementById("focus-select");
+  SM.companies.forEach(c => {
+    const o = document.createElement("option");
+    o.value = c.id; o.textContent = c.name;
+    focusSel.append(o);
+  });
+  if (selected) focusSel.value = selected.c.id;
+  focusSel.onchange = () => {
+    const n = byId(focusSel.value);
+    if (n) { selected = n; showPanel(n); }
+    else { selected = null; panel.classList.remove("open"); }
+  };
+
+  const hint = document.getElementById("graph-hint");
   let moved = false;
   canvas.addEventListener("pointerdown", ev => {
+    hint.classList.add("hide");
     const p = pos(ev); const n = nodeAt(p.x, p.y);
     moved = false;
     if (n) { dragging = n; canvas.setPointerCapture(ev.pointerId); }
