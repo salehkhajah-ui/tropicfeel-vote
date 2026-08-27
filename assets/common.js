@@ -5,22 +5,22 @@
 
   const T = isAr ? {
     companies: "الشركات", graph: "الخريطة الاقتصادية", vision: "الرؤية",
-    valuation: "قيّم شركتك", demo: "جرّب المنصة ↗", langLink: '<a href="/" lang="en" dir="ltr">English</a>',
+    valuation: "قيّم شركتك", pricing: "الأسعار", demo: "جرّب المنصة ↗", langLink: '<a href="/" lang="en" dir="ltr">English</a>',
     home: "/ar", visionHref: "/ar#vision",
     tagline: "ننظّم الاقتصاد الخاص في العالم — بدءاً من الكويت والخليج.",
     demoNote: "موقع تجريبي — جميع الشركات والأرقام خيالية.",
     product: "المنتج", company: "الشركة",
-    fLinks1: [["/get-started", "قيّم شركتك"], ["/companies", "دليل الشركات"], ["/graph", "الخريطة الاقتصادية"], ["/dashboard", "لوحة الفرص"]],
+    fLinks1: [["/pricing", "الأسعار"], ["/get-started", "قيّم شركتك"], ["/companies", "دليل الشركات"], ["/graph", "الخريطة الاقتصادية"], ["/dashboard", "لوحة الفرص"]],
     fLinks2: [["/ar#vision", "الرؤية"], ["/ar#phases", "خارطة الطريق"], ["/ar#model", "نموذج العمل"]],
     disclaimer: "<strong>تنويه مهم:</strong> تقييمات ودرجات وتقديرات سمارت موني هي مخرجات نماذج ذكاء اصطناعي لغرض دعم القرار فقط، وليست تقييمات معتمدة أو استشارات استثمارية أو عروضاً لأوراق مالية. المنصة لا تُسهّل بيع أو شراء الحصص؛ ويتم التعريف بالمستثمرين حصراً عبر غرف بيانات موثّقة الوصول، وأي تسهيل مستقبلي للمعاملات سيتم فقط عبر شركاء مرخّصين وخاضعين للرقابة وبما يتوافق مع أنظمة الأوراق المالية ومكافحة غسل الأموال والتحقق من الهوية."
   } : {
     companies: "Companies", graph: "Economic Graph", vision: "Vision",
-    valuation: "Get Your Valuation", demo: "Live Demo ↗", langLink: '<a href="/ar" lang="ar" dir="rtl">عربي</a>',
+    valuation: "Get Your Valuation", pricing: "Pricing", demo: "Live Demo ↗", langLink: '<a href="/ar" lang="ar" dir="rtl">عربي</a>',
     home: "/", visionHref: "/#vision",
     tagline: "Organizing the world's private economy — starting with Kuwait and the GCC.",
     demoNote: "Demonstration site — all companies and figures are fictional.",
     product: "Product", company: "Company",
-    fLinks1: [["/get-started", "Get Your Valuation"], ["/companies", "Company Directory"], ["/graph", "Economic Graph"], ["/dashboard", "Opportunity Dashboard"]],
+    fLinks1: [["/pricing", "Pricing"], ["/get-started", "Get Your Valuation"], ["/companies", "Company Directory"], ["/graph", "Economic Graph"], ["/dashboard", "Opportunity Dashboard"]],
     fLinks2: [["/#vision", "Vision"], ["/#phases", "Roadmap"], ["/#model", "Business Model"]],
     disclaimer: "<strong>Important:</strong> Smart Money valuations, scores, and synergy estimates are AI model outputs intended for decision support only. They are not certified appraisals, investment advice, or offers of securities. The platform does not facilitate the purchase or sale of equity; introductions to investors occur only through verified-access data rooms, and any future transaction facilitation would occur solely through licensed, regulated partners in compliance with applicable securities, AML, and KYC requirements."
   };
@@ -39,6 +39,7 @@
         <a href="/graph" class="${page === "graph" ? "active" : ""}">${T.graph}</a>
         <a href="${T.visionHref}">${T.vision}</a>
         <a href="/get-started" class="${page === "get-started" ? "active" : ""}">${T.valuation}</a>
+        <a href="/pricing" class="${page === "pricing" ? "active" : ""}">${T.pricing}</a>
         <span class="lang-link">${T.langLink}</span>
         <a href="/dashboard" class="cta ${page === "dashboard" ? "active" : ""}">${T.demo}</a>
       </nav>
