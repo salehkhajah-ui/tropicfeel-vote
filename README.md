@@ -3,48 +3,40 @@
 **Smart Money** makes private businesses **discoverable, understandable, investable and collaborative** —
 the Bloomberg Terminal for private companies, starting with Kuwait and the GCC.
 
-This is a standalone product demonstration site: a marketing narrative plus an interactive demo
-built on a fictional dataset of 12 Kuwaiti/GCC companies. Pure static HTML/CSS/JS — no build step,
-no dependencies, no environment variables.
+> **⚠️ Canonical branch: `smart-money`.** This branch is the unified merge of all Smart Money work
+> (marketing site + Deal Engine business model + light theme + the authenticated app + investor terminal
+> + full Arabic mirror). All future work continues from here. The older
+> `claude/smart-money-platform-syjxjn` branch and the separate `smart-money` repository predate this
+> merge — do not develop on them without first syncing from this branch.
+> This repository's `main` is the unrelated Tropicfeel voting site — never merge into it.
 
-> **Note:** this project is completely independent of the Tropicfeel Arabia voting site.
-> It currently lives on the `claude/smart-money-platform-syjxjn` branch of the `tropicfeel-vote`
-> repository only as a holding place — see "Moving to its own repository" below.
+## Site map
 
-## Pages
+| Route | What it is |
+|---|---|
+| `/` and `/ar` | Marketing landing (light "Apple" theme): problem, mission, how-it-works, valuation teaser, platform pillars, AI deal manufacturing, Deal Engine business model, investor side, 4-phase roadmap |
+| `/pricing` and `/ar/pricing` | Attract pricing (try-first, founding members) with plain-language explainers + FAQ |
+| `/get-started` | 2-minute instant-valuation wizard (no signup, nothing stored) |
+| `/companies`, `/company`, `/dashboard`, `/graph` (+ `/ar/...` mirrors) | Product demo (dark terminal theme) on the fictional 12-company dataset |
+| `/investors` and `/ar/investors` | Investor Terminal: mandate-fit scored deal flow |
+| `/app` (+ `/app/login`, `/app/onboarding`, `/app/valuation`, `/app/invest`, `/app/proposals`) | The real product: Supabase-backed auth, company onboarding, AI valuation with Business Score & Value Gap, investor mode |
 
-| Route | File | What it shows |
-|---|---|---|
-| `/` | `index.html` | The vision: the problem, mission, how-it-works, platform pillars, AI deal manufacturing, the 4-phase regulatory-safe roadmap, and the 4-stream business model |
-| `/get-started` | `get-started.html` | Instant-valuation onboarding wizard: 3 steps → AI valuation range + live matching opportunities (nothing is stored) |
-| `/companies` | `companies.html` | Company directory — search & filter by industry and intent signals, with verified vs self-reported financials and AI valuation ranges |
-| `/company?id=…` | `company.html` | A company's economic profile: identity, financial health, AI valuation with confidence & methodology, readiness scores, published opportunity signals, idle assets, and mapped relationships |
-| `/dashboard` | `dashboard.html` | The morning opportunity engine, viewed as Al-Deera Construction: AI-manufactured deals with approve/dismiss, capital allocation intelligence, benchmarks, and idle-asset listings |
-| `/graph` | `graph.html` | The interactive Economic Graph — a live force-directed map of trade, competition, and AI-manufactured matches |
+Shared assets: `assets/style.css` (design system, dark + `body.light` themes), `assets/data.js` /
+`assets/data-ar.js` (demo dataset EN/AR), `assets/common.js` (bilingual auth-aware chrome),
+`assets/supabase.js` (+ vendored `supabase-js`) for the app.
 
-Shared assets live in `assets/` (`style.css` design system, `data.js` demo dataset, `common.js` nav/footer).
+## Deploy
 
-## Core ideas encoded in the demo
+Static site, zero build. The production Vercel project deploys via a bootstrap whose
+`buildCommand` fetches this branch:
 
-- **Economic profiles** — every company gets the infrastructure of a public one
-- **Verified vs self-reported** metrics, clearly badged
-- **AI valuations** — always shown as ranges with confidence, method, and a decision-support disclaimer (never a certified appraisal)
-- **The Opportunity Engine** — the AI doesn't wait for deals; it *manufactures* them from idle assets and unmet needs
-- **Phased regulatory posture** — intelligence → signals → verified data rooms → transactions only via licensed/regulated partners
-- **Four revenue streams** — subscriptions, success fees, premium intelligence, and the financial services ecosystem
+```
+curl -sL https://codeload.github.com/salehkhajah-ui/tropicfeel-vote/tar.gz/refs/heads/smart-money -o /tmp/site.tgz && mkdir -p public && tar xzf /tmp/site.tgz -C public --strip-components=1 && rm -f public/vercel.json public/README.md
+```
 
-## Moving to its own repository
+(or point any Vercel project's Production Branch at `smart-money`).
 
-1. Create a new empty repository on GitHub (e.g. `smart-money`), **without** a README.
-2. From a clone of `tropicfeel-vote`:
-   ```bash
-   git checkout claude/smart-money-platform-syjxjn
-   git push https://github.com/<your-username>/smart-money.git claude/smart-money-platform-syjxjn:main
-   ```
-3. Import the new repository into Vercel — it deploys as-is (`cleanUrls` is preconfigured).
+The `/app` section talks to the Supabase project configured in `assets/supabase.js`.
 
-Alternatively, deploy directly from this branch: create a **new** Vercel project from this repository
-and set *Settings → Git → Production Branch* to `claude/smart-money-platform-syjxjn`. Do not change
-the existing voting-site project.
-
-⚠️ All companies, figures, valuations, and synergy estimates on the site are fictional demo data.
+⚠️ All companies, figures, valuations, and synergy estimates outside `/app` are fictional demo data;
+pricing shown is indicative launch pricing.
