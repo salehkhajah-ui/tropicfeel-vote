@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>لوحة الفرص — سمارت موني</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/style.css">
+<link rel="alternate" hreflang="en" href="/dashboard">
+<link rel="alternate" hreflang="ar" href="/ar/dashboard">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%232fd48a'/><text x='50' y='70' font-size='60' text-anchor='middle' font-family='monospace' font-weight='bold' fill='%2305261a'>S</text></svg>">
+</head>
+<body data-page="dashboard">
+
+<main class="wrap" id="main"></main>
+
+<script src="/assets/data.js"></script>
+<script src="/assets/data-ar.js"></script>
+<script src="/assets/common.js"></script>
+<script>
+  // The demo signs you in as Al-Deera Construction — the 800K KD company from the pitch.
+  const me = SM.byId("aldeera");
+  const today = new Date().toLocaleDateString("ar-KW-u-nu-latn", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+
+  const myMatches = SM.matches.filter(m => m.a === me.id || m.b === me.id);
+  const marketMatches = SM.matches.filter(m => m.a !== me.id && m.b !== me.id);
+
+  const toneBg = { gold: "var(--gold-soft)", blue: "var(--blue-soft)", green: "var(--green-soft)", violet: "var(--violet-soft)" };
+
+  const oppCard = (m, mine) => {
+    const a = SM.byId(m.a), b = SM.byId(m.b);
+    const other = mine ? SM.byId(m.a === me.id ? m.b : m.a) : null;
+    return `
+    <div class="opp">
+      <div class="icon" style="background:${mine ? "var(--green-soft)" : "var(--blue-soft)"}">${m.icon}</div>
+      <div class="body">
+        <div class="title">
+          ${mine
+            ? `${m.headline} — مع <a class="blue" href="/ar/company?id=${other.id}">${other.name}</a>`
+            : `<a class="blue" href="/ar/company?id=${a.id}">${a.name}</a> <span class="arrow">↔</span> <a class="blue" href="/ar/company?id=${b.id}">${b.name}</a>`}
+        </div>
+        <div class="desc">${m.detail}</div>
+        <div class="value"><span class="green">${SM.fmtKD(m.value)}</span> <span class="dim">${m.valueLabel}</span>
+          · <span class="gold">ثقة ${m.confidence}%</span> · <span class="chip" style="font-size:11px">${m.type}</span></div>
+        <div class="actions">
+          <button class="btn btn-primary btn-sm" onclick="this.textContent='✓ تمت الموافقة — طُلب التعارف';this.disabled=true">وافق على التعارف</button>
+          <button class="btn btn-ghost btn-sm" onclick="this.closest('.opp').style.opacity=.35;this.textContent='تم التجاهل';this.disabled=true">تجاهل</button>
+        </div>
+      </div>
+    </div>`;
+  };
+
+  document.getElementById("main").innerHTML = `
+  <div class="page-head" style="display:flex;justify-content:space-between;align-items:flex-end;gap:20px;flex-wrap:wrap">
+    <div>
+      <div class="panel-title" style="margin-bottom:8px">${today} · مسجّل الدخول كشركة تجريبية</div>
+      <h1 style="display:flex;align-items:center;gap:14px">
+        <span class="logo-tile" style="width:46px;height:46px;font-size:18px;border-radius:12px;background:${me.color}">${me.short}</span>
+        ${me.name}
+      </h1>
+      <p style="margin-top:10px">صباح الخير. وجدت الشبكة الاقتصادية
+        <b class="green">${myMatches.length + SM.insights.length + marketMatches.length} فرصة جديدة</b> أثناء الليل.
+        ليست إشعارات — بل أموال.</p>
+    </div>
+    <div style="display:flex;gap:12px;flex-wrap:wrap">
+      <div class="stat" style="min-width:150px"><div class="label">درجة الفرص</div>
+        <div class="value green">${me.scores.opportunity}<span class="dim" style="font-size:15px">/100</span></div>
+        <div class="sub">▲ 4 عن الأسبوع الماضي</div></div>
+      <div class="stat" style="min-width:150px"><div class="label">قيمة مطروحة تقديرية</div>
+        <div class="value gold">${SM.fmtKD(myMatches.reduce((n, m) => n + m.value, 0) + 436000)}</div>
+        <div class="sub">عبر ${myMatches.length + SM.insights.length} بنود</div></div>
+    </div>
+  </div>
+
+  <div class="split">
+    <div><!-- MAIN: opportunity feed -->
+      <div class="panel-title">صفقات صُنعت لأجلك</div>
+      ${myMatches.map(m => oppCard(m, true)).join("")}
+
+      <div class="panel-title" style="margin-top:30px">ذكاء توزيع رأس المال</div>
+      ${SM.insights.map(i => `
+        <div class="opp">
+          <div class="icon" style="background:${toneBg[i.tone]}">${i.icon}</div>
+          <div class="body">
+            <div class="title">${i.title}</div>
+            <div class="desc">${i.body}</div>
+            <div class="value"><span class="${i.tone}">${i.impact}</span></div>
+            <div class="actions">
+              <button class="btn btn-ghost btn-sm" onclick="this.textContent='✓ أُضيفت إلى خطة العمل';this.disabled=true">أضِف إلى خطة العمل</button>
+            </div>
+          </div>
+        </div>`).join("")}
+
+      <div class="panel-title" style="margin-top:30px">في أماكن أخرى من الشبكة</div>
+      ${marketMatches.slice(0, 3).map(m => oppCard(m, false)).join("")}
+    </div>
+
+    <div><!-- SIDE: company intelligence rail -->
+      <div class="card">
+        <div class="panel-title">تقييمك بالذكاء الاصطناعي</div>
+        <div style="font-family:var(--font-display);font-size:22px;font-weight:700">
+          ${SM.fmtRange(me.valuation.low, me.valuation.high)}</div>
+        <div class="dim" style="font-size:13px;margin-top:4px">الثقة: ${me.valuation.confidenceAr} ·
+          <a class="blue" href="/ar/company?id=${me.id}">الملف الكامل ←</a></div>
+        <hr class="hr">
+        <p class="faint" style="font-size:12px">وثّق أرقام EBITDA والديون لديك لتضييق هذا النطاق بنسبة تقديرية 22%.</p>
+        <button class="btn btn-primary btn-sm" style="margin-top:10px" onclick="this.textContent='✓ بدأ التوثيق';this.disabled=true">وثّق البيانات المالية</button>
+      </div>
+
+      <div class="card">
+        <div class="panel-title">مقارنة معيارية — إنشاءات الكويت</div>
+        <div class="kv">
+          <dt>هامش EBITDA</dt><dd class="green"><bdi>${me.financials.margin}%</bdi> <span class="faint">(الوسيط <bdi>14%</bdi>)</span></dd>
+          <dt>أيام التحصيل</dt><dd class="red"><bdi>${me.financials.receivableDays}</bdi> <span class="faint">(الوسيط <bdi>64</bdi>)</span></dd>
+          <dt>نمو الإيرادات</dt><dd class="gold"><bdi>+${me.financials.growth}%</bdi> <span class="faint">(الوسيط <bdi>+8%</bdi>)</span></dd>
+          <dt>حصة أكبر عميل</dt><dd class="red"><bdi>47%</bdi> <span class="faint">(الوسيط <bdi>28%</bdi>)</span></dd>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="panel-title">أصول معطّلة مكتشفة</div>
+        ${me.idleAssets.map(a => `<p class="dim" style="font-size:13.5px;padding:5px 0">🧩 ${a}</p>`).join("")}
+        <button class="btn btn-ghost btn-sm" style="margin-top:10px" onclick="this.textContent='✓ أُدرجت في بورصة الأصول';this.disabled=true">أدرج السعة المعطّلة</button>
+      </div>
+
+      <div class="card">
+        <div class="panel-title">إشاراتك المنشورة</div>
+        ${me.signals.map(sg => `<p style="font-size:14px;padding:4px 0">📣 ${sg}</p>`).join("")}
+        <button class="btn btn-ghost btn-sm" style="margin-top:10px" onclick="this.textContent='✓ محرر الإشارات قادم في النسخة التجريبية 2';this.disabled=true">انشر إشارة جديدة</button>
+      </div>
+
+      <div class="card" style="background:linear-gradient(160deg,var(--panel),#12251c)">
+        <div class="panel-title">تعارفات المنظومة</div>
+        <p class="dim" style="font-size:13.5px">بنكان ومكتب عائلي واحد طلبوا هذا الشهر التعرف على شركات بملفك.</p>
+        <button class="btn btn-primary btn-sm" style="margin-top:12px" onclick="this.textContent='✓ تم تسجيل الاهتمام';this.disabled=true">راجع الاهتمام</button>
+      </div>
+    </div>
+  </div>
+
+  <p class="faint" style="margin-top:34px;font-size:13px">
+    بيئة تجريبية: أنت تشاهد المنصة بصفتك ${me.name}، وهي شركة افتراضية.
+    قيم التآزر والرؤى مخرجات نماذج ذكاء اصطناعي لغرض التوضيح.
+  </p>`;
+</script>
+</body>
+</html>

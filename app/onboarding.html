@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Create your economic profile — Smart Money</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/style.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%232fd48a'/><text x='50' y='70' font-size='60' text-anchor='middle' font-family='monospace' font-weight='bold' fill='%2305261a'>S</text></svg>">
+<style>
+  .step { display: none; }
+  .step.active { display: block; }
+  .steps-rail { display: flex; gap: 8px; margin-bottom: 22px; flex-wrap: wrap; }
+  .steps-rail div {
+    flex: 1; min-width: 120px; height: 4px; border-radius: 99px; background: var(--bg-3);
+  }
+  .steps-rail div.done { background: var(--green); }
+  .field { display: block; margin-bottom: 16px; }
+  .field input, .field select, .field textarea { width: 100%; }
+  .field textarea {
+    background: var(--bg-2); border: 1px solid var(--line-strong); color: var(--text);
+    border-radius: 9px; padding: 10px 14px; font-size: 14px; font-family: inherit;
+    outline: none; resize: vertical; min-height: 84px;
+  }
+  .field textarea:focus { border-color: var(--green); }
+</style>
+</head>
+<body data-page="app">
+
+<main class="wrap" style="max-width:720px">
+  <div class="page-head" style="padding-bottom:14px">
+    <h1>Create your economic profile</h1>
+    <p>Three short steps. You control what you disclose — and you can publish or stay in draft.</p>
+  </div>
+
+  <div class="steps-rail">
+    <div class="done" id="rail-1"></div><div id="rail-2"></div><div id="rail-3"></div>
+  </div>
+
+  <div id="alert" style="display:none;margin-bottom:16px" class="disclaimer"></div>
+
+  <!-- STEP 1 — identity -->
+  <section class="card step active" id="step-1">
+    <div class="panel-title">Step 1 of 3 · Identity</div>
+    <label class="field">
+      <div class="panel-title" style="margin-bottom:6px">Company name *</div>
+      <input type="text" id="name" required>
+    </label>
+    <div class="grid grid-2">
+      <label class="field">
+        <div class="panel-title" style="margin-bottom:6px">Industry *</div>
+        <input type="text" id="industry" list="industries" required placeholder="e.g. Construction">
+        <datalist id="industries"></datalist>
+      </label>
+      <label class="field">
+        <div class="panel-title" style="margin-bottom:6px">City</div>
+        <input type="text" id="city" placeholder="Kuwait City">
+      </label>
+      <label class="field">
+        <div class="panel-title" style="margin-bottom:6px">Country</div>
+        <input type="text" id="country" value="Kuwait">
+      </label>
+      <label class="field">
+        <div class="panel-title" style="margin-bottom:6px">Year founded</div>
+        <input type="number" id="founded_year" min="1800" placeholder="2009">
+      </label>
+      <label class="field">
+        <div class="panel-title" style="margin-bottom:6px">Employees</div>
+        <input type="number" id="employees" min="0" placeholder="142">
+      </label>
+    </div>
+    <label class="field">
+      <div class="panel-title" style="margin-bottom:6px">What does the business do?</div>
+      <textarea id="about" placeholder="One or two sentences a stranger could understand."></textarea>
+    </label>
+    <button class="btn btn-primary" id="next-1">Continue →</button>
+  </section>
+
+  <!-- STEP 2 — financials -->
+  <section class="card step" id="step-2">
+    <div class="panel-title">Step 2 of 3 · Financial health (optional)</div>
+    <p class="dim" style="font-size:14px;margin-bottom:18px">
+      These figures start as <span class="badge-self">SELF-REPORTED</span>. Verification against
+      audited statements or bank data is done by Smart Money — a company can never mark its own
+      numbers verified. Verified figures tighten your valuation range considerably.
+    </p>
+    <div class="grid grid-2">
+      <label class="field">
+        <div class="panel-title" style="margin-bottom:6px">Fiscal year</div>
+        <input type="number" id="fiscal_year" min="1990" max="2100">
+      </label>
+      <label class="field">
+        <div class="panel-title" style="margin-bottom:6px">Revenue (KD)</div>
+        <input type="number" id="revenue" min="0" step="1000" placeholder="800000">
+      </label>
+      <label class="field">
+        <div class="panel-title" style="margin-bottom:6px">EBITDA (KD)</div>
+        <input type="number" id="ebitda" step="1000" placeholder="176000">
+      </label>
+      <label class="field">
+        <div class="panel-title" style="margin-bottom:6px">Operating cash flow (KD)</div>
+        <input type="number" id="cash_flow" step="1000">
+      </label>
+      <label class="field">
+        <div class="panel-title" style="margin-bottom:6px">Debt (KD)</div>
+        <input type="number" id="debt" min="0" step="1000">
+      </label>
+      <label class="field">
+        <div class="panel-title" style="margin-bottom:6px">Receivable days</div>
+        <input type="number" id="receivable_days" min="0" placeholder="88">
+      </label>
+    </div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <button class="btn btn-ghost" id="back-2">← Back</button>
+      <button class="btn btn-primary" id="next-2">Continue →</button>
+    </div>
+  </section>
+
+  <!-- STEP 3 — signals -->
+  <section class="card step" id="step-3">
+    <div class="panel-title">Step 3 of 3 · What are you open to?</div>
+    <p class="dim" style="font-size:14px;margin-bottom:16px">
+      Signals are how the opportunity engine matches you. Declaring intent is not an offer to
+      sell securities — it tells the graph what kind of introduction is worth making.
+    </p>
+    <div id="signal-grid" class="tag-row" style="margin-bottom:20px"></div>
+    <label class="field">
+      <div class="panel-title" style="margin-bottom:6px">Any idle or underused asset?</div>
+      <textarea id="idle" placeholder="e.g. Scaffolding fleet idle ~40% of the year"></textarea>
+    </label>
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <button class="btn btn-ghost" id="back-3">← Back</button>
+      <button class="btn btn-primary" id="finish">Create profile</button>
+    </div>
+  </section>
+
+  <p class="faint" style="margin-top:20px;font-size:12.5px">
+    Your profile is created as a <b>draft</b> — nothing is public until you publish it.
+  </p>
+</main>
+
+<script src="/assets/common.js"></script>
+<script type="module">
+import { supabase, requireSession, onboardCompany, SIGNAL_TYPES } from "/assets/supabase.js";
+
+const session = await requireSession();
+if (session) {
+  const $ = (id) => document.getElementById(id);
+  const alertBox = $("alert");
+  const chosen = new Set();
+
+  const fail = (msg) => {
+    alertBox.style.display = "block";
+    alertBox.style.borderColor = "var(--red)";
+    alertBox.innerHTML = `<span class="red">${msg}</span>`;
+    alertBox.scrollIntoView({ behavior: "smooth", block: "center" });
+  };
+
+  $("fiscal_year").value = new Date().getFullYear() - 1;
+
+  // industry suggestions come from what is already in the directory
+  const { data: dir } = await supabase.from("company_directory").select("industry");
+  [...new Set((dir || []).map((d) => d.industry))].sort().forEach((i) => {
+    const o = document.createElement("option"); o.value = i;
+    $("industries").append(o);
+  });
+
+  $("signal-grid").innerHTML = SIGNAL_TYPES
+    .map(([v, label]) => `<button type="button" class="chip" data-signal="${v}">${label}</button>`)
+    .join("");
+  $("signal-grid").onclick = (e) => {
+    const b = e.target.closest("[data-signal]");
+    if (!b) return;
+    const v = b.dataset.signal;
+    if (chosen.has(v)) { chosen.delete(v); b.classList.remove("green"); }
+    else { chosen.add(v); b.classList.add("green"); }
+  };
+
+  const go = (n) => {
+    document.querySelectorAll(".step").forEach((s) => s.classList.remove("active"));
+    $("step-" + n).classList.add("active");
+    for (let i = 1; i <= 3; i++) $("rail-" + i).classList.toggle("done", i <= n);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  $("next-1").onclick = () => {
+    if (!$("name").value.trim() || !$("industry").value.trim()) {
+      return fail("Company name and industry are required.");
+    }
+    alertBox.style.display = "none";
+    go(2);
+  };
+  $("back-2").onclick = () => go(1);
+  $("next-2").onclick = () => go(2 + 1);
+  $("back-3").onclick = () => go(2);
+
+  const num = (id) => {
+    const v = $(id).value.trim();
+    return v === "" ? null : Number(v);
+  };
+
+  $("finish").onclick = async () => {
+    const btn = $("finish");
+    btn.disabled = true;
+    btn.textContent = "Creating…";
+    try {
+      const { data: company, error } = await onboardCompany({
+        p_name: $("name").value.trim(),
+        p_industry: $("industry").value.trim(),
+        p_city: $("city").value.trim() || null,
+        p_country: $("country").value.trim() || "Kuwait",
+        p_founded_year: num("founded_year"),
+        p_employees: num("employees"),
+        p_about: $("about").value.trim() || null,
+      });
+      if (error) throw error;
+
+      // Financials, signals and assets are separate inserts governed by RLS —
+      // the membership created above is what authorises them.
+      const revenue = num("revenue"), ebitda = num("ebitda");
+      const anyFinancials = ["revenue", "ebitda", "cash_flow", "debt", "receivable_days"]
+        .some((f) => num(f) !== null);
+
+      if (anyFinancials) {
+        const { error: fErr } = await supabase.from("company_financials").insert({
+          company_id: company.id,
+          fiscal_year: num("fiscal_year") || new Date().getFullYear() - 1,
+          revenue, ebitda,
+          margin: revenue && ebitda ? Number(((ebitda / revenue) * 100).toFixed(2)) : null,
+          cash_flow: num("cash_flow"),
+          debt: num("debt"),
+          receivable_days: num("receivable_days"),
+        });
+        if (fErr) throw fErr;
+      }
+
+      if (chosen.size) {
+        const labels = Object.fromEntries(SIGNAL_TYPES);
+        const { error: sErr } = await supabase.from("opportunity_signals").insert(
+          [...chosen].map((type) => ({ company_id: company.id, type, title: labels[type] }))
+        );
+        if (sErr) throw sErr;
+      }
+
+      const idle = $("idle").value.trim();
+      if (idle) {
+        const { error: aErr } = await supabase.from("idle_assets")
+          .insert({ company_id: company.id, description: idle });
+        if (aErr) throw aErr;
+      }
+
+      location.href = "/app/company?id=" + company.id + "&created=1";
+    } catch (err) {
+      fail(err.message || "Could not create the profile. Please try again.");
+      btn.disabled = false;
+      btn.textContent = "Create profile";
+    }
+  };
+}
+</script>
+</body>
+</html>

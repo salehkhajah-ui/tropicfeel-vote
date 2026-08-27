@@ -34,7 +34,9 @@
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
-html { scroll-behavior: smooth; }
+@media (prefers-reduced-motion: no-preference) {
+  html { scroll-behavior: smooth; }
+}
 
 body {
   background: var(--bg);
@@ -49,7 +51,12 @@ a { color: inherit; text-decoration: none; }
 button { font-family: inherit; cursor: pointer; }
 img, svg, canvas { max-width: 100%; }
 
-h1, h2, h3, h4 { font-family: var(--font-display); line-height: 1.15; font-weight: 600; letter-spacing: -0.01em; }
+/* no double-tap-zoom delay on anything interactive — taps respond immediately */
+a, button, summary, label, input, select, textarea { touch-action: manipulation; }
+:where(a, button, summary, [tabindex]):focus-visible { outline: 2px solid var(--green); outline-offset: 2px; }
+::selection { background: rgba(47, 212, 138, 0.3); }
+
+h1, h2, h3, h4 { font-family: var(--font-display); line-height: 1.15; font-weight: 600; letter-spacing: -0.01em; text-wrap: balance; }
 
 .mono { font-family: var(--font-mono); }
 .dim { color: var(--text-dim); }
@@ -64,9 +71,17 @@ h1, h2, h3, h4 { font-family: var(--font-display); line-height: 1.15; font-weigh
 /* ---------- top nav ---------- */
 .nav {
   position: sticky; top: 0; z-index: 50;
-  background: rgba(10, 15, 28, 0.85);
-  backdrop-filter: blur(14px);
-  border-bottom: 1px solid var(--line);
+  background: rgba(10, 15, 28, 0.72);
+  -webkit-backdrop-filter: blur(18px) saturate(180%);
+  backdrop-filter: blur(18px) saturate(180%);
+  border-bottom: 1px solid transparent;
+  transition: border-color .3s ease, box-shadow .3s ease;
+}
+/* scroll edge effect: the divider and shadow exist only once content
+   actually scrolls under the floating bar */
+.nav.scrolled {
+  border-bottom-color: var(--line);
+  box-shadow: 0 14px 34px -20px rgba(0, 0, 0, 0.6);
 }
 .nav-inner {
   max-width: var(--maxw); margin: 0 auto; padding: 0 24px;
@@ -79,17 +94,36 @@ h1, h2, h3, h4 { font-family: var(--font-display); line-height: 1.15; font-weigh
   display: grid; place-items: center; color: #05261a; font-size: 15px; font-weight: 800;
   font-family: var(--font-mono);
 }
-.nav-links { display: flex; gap: 4px; margin-left: auto; align-items: center; flex-wrap: wrap; }
+.nav-links { display: flex; gap: 4px; margin-inline-start: auto; align-items: center; flex-wrap: wrap; }
 .nav-links a {
   padding: 7px 13px; border-radius: 8px; font-size: 14px; color: var(--text-dim);
   transition: color .15s, background .15s;
 }
 .nav-links a:hover { color: var(--text); background: var(--bg-3); }
+.nav-links a:active { color: var(--text); background: var(--bg-3); }
 .nav-links a.active { color: var(--text); background: var(--bg-3); }
 .nav-links a.cta {
-  background: var(--green); color: #05261a; font-weight: 600; margin-left: 8px;
+  background: var(--green); color: #05261a; font-weight: 600; margin-inline-start: 8px;
 }
+.nav-links a.lang-switch {
+  border: 1px solid var(--line-strong); border-radius: 999px; font-size: 13px;
+  padding: 5px 13px; margin-inline-start: 6px;
+}
+.nav-links a.lang-switch:hover { border-color: var(--green); color: var(--green); background: transparent; }
 .nav-links a.cta:hover { background: #4be09e; color: #05261a; }
+
+/* On narrow screens the links can't share a 62px row with the brand without wrapping
+   out of the bar — stack them into their own horizontally scrollable row instead. */
+@media (max-width: 760px) {
+  .nav-inner { height: auto; flex-wrap: wrap; gap: 10px; padding: 10px 16px; }
+  .nav-links {
+    width: 100%; margin-inline-start: 0; flex-wrap: nowrap;
+    overflow-x: auto; scrollbar-width: none; -ms-overflow-style: none;
+  }
+  .nav-links::-webkit-scrollbar { display: none; }
+  .nav-links a { flex: 0 0 auto; padding: 6px 11px; font-size: 13.5px; }
+  .nav-links a.cta { margin-inline-start: 4px; }
+}
 
 /* ---------- buttons / chips / cards ---------- */
 .btn {
@@ -98,6 +132,8 @@ h1, h2, h3, h4 { font-family: var(--font-display); line-height: 1.15; font-weigh
   font-size: 15px; font-weight: 600; transition: transform .12s, background .15s, border-color .15s;
 }
 .btn:hover { transform: translateY(-1px); }
+/* feedback lives on the press, and it's instant */
+.btn:active { transform: scale(0.97); transition-duration: .05s; }
 .btn-primary { background: var(--green); color: #05261a; }
 .btn-primary:hover { background: #4be09e; }
 .btn-ghost { border-color: var(--line-strong); color: var(--text); background: transparent; }
@@ -137,7 +173,7 @@ h1, h2, h3, h4 { font-family: var(--font-display); line-height: 1.15; font-weigh
 /* ---------- stat tiles ---------- */
 .stat { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px 20px; }
 .stat .label { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: 0.08em; font-family: var(--font-mono); }
-.stat .value { font-family: var(--font-display); font-size: 26px; font-weight: 700; margin-top: 6px; }
+.stat .value { font-family: var(--font-display); font-size: 26px; font-weight: 700; margin-top: 6px; letter-spacing: -0.015em; }
 .stat .sub { font-size: 12.5px; color: var(--text-dim); margin-top: 4px; }
 
 /* ---------- score meters ---------- */
@@ -152,7 +188,7 @@ h1, h2, h3, h4 { font-family: var(--font-display); line-height: 1.15; font-weigh
 .table-scroll { overflow-x: auto; }
 table.data { width: 100%; border-collapse: collapse; font-size: 14px; }
 table.data th {
-  text-align: left; font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.1em;
+  text-align: start; font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.1em;
   text-transform: uppercase; color: var(--text-faint); font-weight: 500;
   padding: 10px 12px; border-bottom: 1px solid var(--line-strong);
 }
@@ -160,11 +196,19 @@ table.data td { padding: 12px; border-bottom: 1px solid var(--line); vertical-al
 table.data tr:hover td { background: rgba(148, 178, 255, 0.04); }
 
 /* ---------- forms ---------- */
-input[type=text], input[type=search], select {
+input[type=text], input[type=search], input[type=email], input[type=password],
+input[type=number], input[type=tel], input[type=url], input[type=date], select, textarea {
   background: var(--bg-2); border: 1px solid var(--line-strong); color: var(--text);
   border-radius: 9px; padding: 10px 14px; font-size: 14px; font-family: inherit; outline: none;
 }
-input:focus, select:focus { border-color: var(--green); }
+input:focus, select:focus, textarea:focus { border-color: var(--green); }
+input::placeholder, textarea::placeholder { color: var(--text-faint); }
+/* the browser's autofill styling otherwise repaints these fields white */
+input:-webkit-autofill, input:-webkit-autofill:hover, input:-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--text);
+  -webkit-box-shadow: 0 0 0 1000px var(--bg-2) inset;
+  caret-color: var(--text);
+}
 
 /* ---------- page headers ---------- */
 .page-head { padding: 44px 0 26px; }
@@ -270,6 +314,8 @@ footer.site a:hover { color: var(--text); }
 .ticker span { font-family: var(--font-mono); font-size: 13px; color: var(--text-dim); }
 .ticker b { color: var(--green); font-weight: 600; }
 @keyframes tick { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+/* let people actually read an entry they're pointing at */
+.ticker-shell:hover .ticker { animation-play-state: paused; }
 
 /* ---------- company profile ---------- */
 .profile-head { display: flex; gap: 22px; align-items: flex-start; flex-wrap: wrap; padding: 40px 0 10px; }
@@ -286,7 +332,7 @@ footer.site a:hover { color: var(--text); }
 
 .kv { display: grid; grid-template-columns: 1fr auto; gap: 8px 16px; font-size: 14px; }
 .kv dt { color: var(--text-dim); }
-.kv dd { text-align: right; font-family: var(--font-mono); font-size: 13.5px; }
+.kv dd { text-align: end; font-family: var(--font-mono); font-size: 13.5px; }
 
 .range-bar { position: relative; height: 10px; background: var(--bg-3); border-radius: 99px; margin: 18px 0 6px; }
 .range-bar .band { position: absolute; top: 0; bottom: 0; background: linear-gradient(90deg, rgba(47,212,138,.35), rgba(47,212,138,.85)); border-radius: 99px; }
@@ -295,19 +341,116 @@ footer.site a:hover { color: var(--text); }
 
 .spark { display: flex; align-items: flex-end; gap: 5px; height: 56px; }
 .spark i { flex: 1; background: var(--blue-soft); border-top: 2px solid var(--blue); border-radius: 3px 3px 0 0; min-width: 8px; }
+.spark-years { display: flex; justify-content: space-between; font-size: 11px; margin-top: 6px; }
 
 /* graph page */
 #graph-shell { position: relative; border: 1px solid var(--line); border-radius: var(--radius); background: radial-gradient(700px 400px at 50% 30%, #101a30, var(--bg)); overflow: hidden; }
 #graph-canvas { display: block; width: 100%; height: 640px; cursor: grab; }
 #graph-panel {
-  position: absolute; top: 16px; right: 16px; width: 300px; max-width: calc(100% - 32px);
+  position: absolute; top: 16px; inset-inline-end: 16px; width: 300px; max-width: calc(100% - 32px);
   background: rgba(14, 21, 38, 0.93); border: 1px solid var(--line-strong);
   border-radius: var(--radius); padding: 18px; backdrop-filter: blur(8px);
   display: none;
 }
 #graph-panel.open { display: block; }
 .legend { display: flex; gap: 16px; flex-wrap: wrap; font-size: 12.5px; color: var(--text-dim); margin-top: 14px; }
-.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-inline-end: 6px; }
+
+/* ---------- investor terminal ---------- */
+.filters { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin-bottom: 22px; }
+.toggle { display: inline-flex; align-items: center; gap: 8px; font-size: 13.5px; color: var(--text-dim); cursor: pointer; user-select: none; }
+input[type=checkbox] { accent-color: var(--green); width: 15px; height: 15px; cursor: pointer; }
+
+.deal { padding: 20px 22px; }
+.deal + .deal { margin-top: 14px; }
+.deal-head { display: flex; gap: 14px; align-items: flex-start; }
+.deal-head .logo-tile { width: 44px; height: 44px; border-radius: 12px; font-size: 15px; }
+.deal-name { font-family: var(--font-display); font-weight: 600; font-size: 16.5px; }
+.deal-name a:hover { color: var(--green); }
+.deal .fit { margin-left: auto; text-align: right; flex: 0 0 auto; }
+/* deal chips carry long sentences (concentration flags) — let them wrap rather than
+   force the card wider than the viewport */
+.deal .chip { white-space: normal; }
+@media (max-width: 620px) {
+  .deal-head { flex-wrap: wrap; }
+  .deal .fit { margin-left: 0; text-align: left; width: 100%; display: flex; align-items: baseline; gap: 8px; }
+}
+.deal .fit .n { font-family: var(--font-display); font-size: 26px; font-weight: 700; line-height: 1; }
+.deal .fit .l { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-faint); margin-top: 3px; }
+.deal .actions { display: flex; gap: 8px; margin-top: 16px; flex-wrap: wrap; }
+
+.deal-kv {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px 18px;
+  margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--line);
+}
+@media (max-width: 620px) { .deal-kv { grid-template-columns: repeat(2, 1fr); } }
+.deal-kv .l { display: block; font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-faint); }
+.deal-kv .v { display: block; font-family: var(--font-mono); font-size: 14px; margin-top: 3px; }
+
+.fit-parts { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-top: 16px; }
+@media (max-width: 620px) { .fit-parts { grid-template-columns: repeat(3, 1fr); } }
+.fit-parts > div { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-faint); }
+.fit-parts .meter { margin-top: 6px; height: 5px; }
+
+.watch-item { display: flex; align-items: center; gap: 10px; padding: 8px 0; font-size: 13.5px; border-bottom: 1px solid var(--line); }
+.watch-item:last-child { border-bottom: 0; }
+.watch-item a:hover { color: var(--green); }
+
+/* ---------- pricing ---------- */
+.plans { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; align-items: stretch; }
+@media (max-width: 1000px) { .plans { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 620px) { .plans { grid-template-columns: 1fr; } }
+.plan {
+  background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius);
+  padding: 24px; display: flex; flex-direction: column; position: relative;
+}
+/* corner badge, so a highlighted tier's header stays one line and prices align across cards */
+.plan-badge { position: absolute; top: 20px; right: 18px; }
+.plan.featured .panel-title { padding-right: 110px; }
+.plan.featured { border-color: var(--green); box-shadow: 0 18px 44px -26px rgba(47, 212, 138, 0.55); }
+.plan .price { font-family: var(--font-display); font-size: 32px; font-weight: 700; margin: 8px 0 2px; letter-spacing: -0.02em; }
+.plan .price small { font-size: 14px; font-weight: 500; color: var(--text-dim); letter-spacing: 0; }
+.plan ul { list-style: none; display: grid; gap: 9px; margin: 18px 0 22px; }
+.plan li { font-size: 13.5px; color: var(--text-dim); padding-left: 22px; position: relative; }
+.plan li::before { content: "✓"; position: absolute; left: 0; color: var(--green); font-weight: 700; }
+.plan li.off { color: var(--text-faint); }
+.plan li.off::before { content: "—"; color: var(--text-faint); }
+.plan .btn { margin-top: auto; justify-content: center; }
+
+/* ---------- score ring (conic) ---------- */
+.score-ring {
+  border-radius: 50%; display: grid; place-items: center; margin: 0 auto;
+  background:
+    radial-gradient(closest-side, var(--panel) 76%, transparent 77% 100%),
+    conic-gradient(var(--green) calc(var(--v) * 1%), var(--bg-3) 0);
+}
+.score-ring span { font-family: var(--font-display); font-weight: 700; font-size: 22px; }
+
+/* ---------- valuation: AI upload hero ---------- */
+.upload-hero {
+  text-align: center; padding: 40px 26px;
+  border-color: rgba(47, 212, 138, 0.4);
+  background:
+    radial-gradient(480px 220px at 50% 0%, rgba(47, 212, 138, 0.10), transparent 70%),
+    var(--panel);
+}
+.dropzone {
+  display: block; max-width: 520px; margin: 22px auto 0; padding: 26px 18px;
+  border: 2px dashed var(--line-strong); border-radius: var(--radius);
+  font-size: 14px; color: var(--text-dim); cursor: pointer;
+  transition: border-color .15s, background .15s;
+}
+.dropzone:hover, .dropzone.drag { border-color: var(--green); background: var(--green-soft); color: var(--text); }
+
+.manual-entry { margin-top: 18px; }
+.manual-entry > summary {
+  cursor: pointer; list-style: none; display: inline-flex; align-items: center; gap: 8px;
+  font-size: 14px; color: var(--text-dim); padding: 10px 16px;
+  border: 1px solid var(--line); border-radius: 10px; user-select: none;
+}
+.manual-entry > summary::-webkit-details-marker { display: none; }
+.manual-entry > summary:hover { border-color: var(--line-strong); color: var(--text); }
+.manual-entry[open] > summary { border-color: var(--green); }
 
 /* misc */
 .hr { border: 0; border-top: 1px solid var(--line); margin: 22px 0; }
@@ -541,3 +684,98 @@ body.light input[type=text], body.light input[type=search], body.light select {
   background: #ffffff; border-color: var(--line-strong); color: var(--text);
 }
 body.light .disclaimer { background: var(--bg-2); }
+
+/* ============================================================
+   merged from investor-terminal lineage
+   ============================================================ */
+   Arabic (RTL) support — /ar/ pages set <html lang="ar" dir="rtl">
+   ============================================================ */
+[lang="ar"] {
+  --font-display: "IBM Plex Sans Arabic", "Space Grotesk", system-ui, sans-serif;
+  --font-body: "IBM Plex Sans Arabic", "Inter", system-ui, sans-serif;
+  /* Latin digits stay monospaced; Arabic glyphs fall through to a real Arabic
+     face instead of a letter-spaced monospace fallback. */
+  --font-mono: "IBM Plex Mono", "IBM Plex Sans Arabic", ui-monospace, monospace;
+}
+[lang="ar"] body { line-height: 1.75; }
+[lang="ar"] h1, [lang="ar"] h2, [lang="ar"] h3, [lang="ar"] h4,
+[lang="ar"] .hero h1, [lang="ar"] .section h2, [lang="ar"] .quote-band blockquote {
+  letter-spacing: 0;
+}
+[lang="ar"] .hero .kicker, [lang="ar"] .section-kicker,
+[lang="ar"] .panel-title, [lang="ar"] .stat .label,
+[lang="ar"] .phase .num, [lang="ar"] table.data th {
+  letter-spacing: 0; font-family: var(--font-body); font-weight: 600;
+}
+[lang="ar"] .hero h1 { font-size: clamp(32px, 5vw, 54px); }
+/* keep money, digits, and Latin abbreviations readable inside RTL text */
+[dir="rtl"] .mono, [dir="rtl"] .kv dd, [dir="rtl"] .ticker span { unicode-bidi: plaintext; }
+/* ticker scrolls the mirrored way in RTL */
+[dir="rtl"] .ticker { animation-name: tick-rtl; }
+@keyframes tick-rtl { from { transform: translateX(0); } to { transform: translateX(50%); } }
+/* quantitative axes stay low→high / oldest→newest regardless of text direction */
+[dir="rtl"] .range-bar, [dir="rtl"] .range-labels,
+[dir="rtl"] .spark, [dir="rtl"] .spark-years { direction: ltr; }
+
+/* ---------- valuation letter: collapsed summary that unfolds on click ---------- */
+details.val-letter {
+  margin-top: 12px; border: 1px solid var(--line);
+  border-radius: var(--radius-sm); background: var(--bg-2);
+}
+details.val-letter summary {
+  list-style: none; cursor: pointer; user-select: none;
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  padding: 11px 14px; font-size: 13px; font-weight: 600; color: var(--green);
+}
+details.val-letter summary::-webkit-details-marker { display: none; }
+details.val-letter summary::after {
+  content: "▾"; color: var(--text-faint); transition: transform 0.2s ease;
+}
+details.val-letter[open] summary::after { transform: rotate(180deg); }
+details.val-letter[open] summary { border-bottom: 1px dashed var(--line); }
+details.val-letter summary:hover { color: var(--text); }
+details.val-letter .letter-body {
+  padding: 12px 14px 14px; font-size: 13.5px; line-height: 1.7;
+  color: var(--text-dim); text-align: start;
+}
+details.val-letter[open] .letter-body { animation: letter-unfold .3s ease; }
+@keyframes letter-unfold { from { opacity: 0; transform: translateY(-4px); } }
+@keyframes letter-fade { from { opacity: 0; } }
+details.val-letter .letter-body ul { margin: 6px 0 0; padding-inline-start: 18px; display: grid; gap: 5px; }
+details.val-letter .letter-kicker {
+  font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--text-faint); margin-top: 12px; font-weight: 600;
+}
+details.val-letter .letter-note {
+  margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--line);
+  font-size: 12px; color: var(--text-faint);
+}
+
+/* ============================================================
+   System accessibility preferences
+   Reduced motion is gentler feedback, not no feedback: infinite
+   loops and slides go, instant press/hover states stay.
+   ============================================================ */
+@media (prefers-reduced-motion: reduce) {
+  .ticker { animation-play-state: paused; }
+  .btn:hover { transform: none; }
+  details.val-letter summary::after { transition: none; }
+  details.val-letter[open] .letter-body { animation-name: letter-fade; }
+  .nav { transition: none; }
+}
+@media (prefers-reduced-transparency: reduce) {
+  .nav {
+    background: var(--bg);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+  #graph-panel { background: var(--bg-2); backdrop-filter: none; }
+}
+@media (prefers-contrast: more) {
+  :root {
+    --line: rgba(148, 178, 255, 0.4);
+    --line-strong: rgba(148, 178, 255, 0.62);
+    --text-dim: #b9c5df;
+    --text-faint: #94a2c2;
+  }
+}

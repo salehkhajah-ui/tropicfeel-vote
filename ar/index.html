@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>سمارت موني — نظام التشغيل للاقتصاد الخاص</title>
+<meta name="description" content="سمارت موني تجعل الشركات الخاصة قابلة للاكتشاف والفهم والاستثمار والتعاون. تقييمات بالذكاء الاصطناعي، محرك فرص، والشبكة الاقتصادية للاقتصاد الخاص — بدءًا من الكويت والخليج.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/style.css">
+<link rel="alternate" hreflang="en" href="/">
+<link rel="alternate" hreflang="ar" href="/ar">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%232fd48a'/><text x='50' y='70' font-size='60' text-anchor='middle' font-family='monospace' font-weight='bold' fill='%2305261a'>S</text></svg>">
+</head>
+<body data-page="home" class="light">
+
+<!-- ================= HERO ================= -->
+<section class="hero">
+  <div class="wrap">
+    <div class="kicker">شبكة الأعمال الخاصة · الكويت ← الخليج ← العالم</div>
+    <h1>اعرف قيمتك.<br>اكتشف الفرص.<br><em>نمِّ أعمالك.</em></h1>
+    <p class="lede">
+      شبكة الأعمال الخاصة التي تربط الشركات والمستثمرين والشركاء والموردين والفرص.
+      احصل على تقييم لشركتك بالذكاء الاصطناعي — مجانًا — ثم دع الشبكة الاقتصادية
+      تجد ما يزيد من قيمتها.
+    </p>
+    <div class="cta-row">
+      <a class="btn btn-primary" href="/app/valuation">قيّم شركتي — مجانًا</a>
+      <a class="btn btn-ghost" href="/ar/dashboard">استكشف الفرص</a>
+    </div>
+    <p class="faint" style="margin-top:26px;font-size:13.5px">
+      كم تساوي شركتك؟ كل تقييم هو تقدير نموذجي يُفصح عن منهجيته — وليس تقييمًا معتمدًا أبدًا.
+    </p>
+  </div>
+</section>
+
+<!-- ================= LIVE DEAL TICKER ================= -->
+<div class="ticker-shell" aria-hidden="true">
+  <div class="ticker" id="ticker"></div>
+</div>
+
+<!-- ================= THE PROBLEM ================= -->
+<section class="section" id="problem">
+  <div class="wrap">
+    <div class="section-kicker">المشكلة</div>
+    <h2>السوق المدرجة تملك بنية تحتية مذهلة. الشركات الخاصة لا تملك شيئًا تقريبًا.</h2>
+    <p class="sub">
+      إذا احتاجت «آبل» رأسمالًا فكل شيء موجود: قيمة معروفة، مشترون، بائعون، محللون، بنوك، سيولة.
+      وشركة إنشاءات في الكويت تحقق 800,000 د.ك سنويًا؟ ربما تساوي مليونين، وربما ثمانية ملايين.
+      لا أحد يعرف — ولا أحد يبحث.
+    </p>
+    <div class="grid grid-2" style="margin-top:36px">
+      <div class="card">
+        <div class="panel-title">شركة مدرجة — آبل</div>
+        <div class="tag-row">
+          <span class="chip green">✓ قيمة معروفة</span><span class="chip green">✓ مشترون موجودون</span>
+          <span class="chip green">✓ بائعون موجودون</span><span class="chip green">✓ تغطية محللين</span>
+          <span class="chip green">✓ تمويل بنكي</span><span class="chip green">✓ متابعة مؤسسية</span>
+          <span class="chip green">✓ سيولة</span>
+        </div>
+      </div>
+      <div class="card">
+        <div class="panel-title">شركة خاصة — إنشاءات، الكويت، إيرادات 800 ألف د.ك</div>
+        <div class="tag-row">
+          <span class="chip red">✗ التقييم مجهول</span><span class="chip red">✗ لا اكتشاف للمشترين</span>
+          <span class="chip red">✗ لا وصول للمستثمرين</span><span class="chip red">✗ لا تغطية</span>
+          <span class="chip red">✗ لا مطابقة شركاء</span><span class="chip red">✗ لا مسار سيولة</span>
+          <span class="chip gold">~ علاقات وحظ</span>
+        </div>
+      </div>
+    </div>
+    <div class="card" style="margin-top:16px;border-color:var(--line-strong)">
+      <p style="font-size:15.5px">
+        سواء أراد المالك <b>بيع 20%</b> أو إيجاد <b>شريك استراتيجي</b> أو <b>الاندماج</b> أو
+        <b>جمع رأسمال</b> أو إيجاد <b>موردين</b> أو <b>الاستحواذ</b> على شركة أخرى — لا توجد سوق
+        فعّالة لذلك. إنها فجوة اقتصادية هائلة. <span class="green">ونحن نزيلها.</span>
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ================= THE FUNNEL ================= -->
+<section class="section" id="worth">
+  <div class="wrap">
+    <div class="section-kicker">ابدأ من هنا</div>
+    <h2>كم تساوي شركتك؟</h2>
+    <p class="sub">
+      أدخل أرقام ثلاث سنوات واحصل على قيمة منشأة تقديرية، وقيمة حقوق ملكية،
+      ودرجة أعمالك من 100، وفجوة القيمة — ما يقدّر النموذج نفسه أن شركتك
+      قد تساويه لو بلغت محركاتها الضعيفة وسيط القطاع.
+    </p>
+    <div class="grid grid-3" style="margin-top:32px">
+      <div class="card"><p style="font-size:14.5px">💹 <b>اعرف قيمة شركتك</b><br>
+        <span class="dim" style="font-size:13.5px">تقييم أعمال خاصة بالذكاء الاصطناعي، يُعرض دائمًا كنطاق مع المنهجية ودرجة الثقة.</span></p></div>
+      <div class="card"><p style="font-size:14.5px">📊 <b>اطّلع على درجة أعمالك</b><br>
+        <span class="dim" style="font-size:13.5px">تسعة عناصر — النمو والربحية والتدفق النقدي والدين والكفاءة وغيرها — تُقاس مقابل قطاعك.</span></p></div>
+      <div class="card"><p style="font-size:14.5px">🪜 <b>أغلق فجوة القيمة</b><br>
+        <span class="dim" style="font-size:13.5px">يحدد المحرك الإجراءات التي قد تزيد قيمة شركتك، وما يساويه كل إجراء.</span></p></div>
+    </div>
+    <p style="margin-top:24px"><a class="btn btn-primary" href="/app/valuation">احصل على تقييمي المجاني ←</a></p>
+  </div>
+</section>
+
+<!-- ================= MISSION ================= -->
+<section class="quote-band section alt" id="vision">
+  <blockquote>
+    «نجعل الشركات الخاصة <em>قابلة للاكتشاف</em>، <em>قابلة للفهم</em>،
+    <em>قابلة للاستثمار</em>، و<em>قابلة للتعاون</em>.»
+  </blockquote>
+  <div class="attr">رسالة سمارت موني — «بلومبرغ تيرمينال» للشركات الخاصة.</div>
+</section>
+
+<!-- ================= PLATFORM PILLARS ================= -->
+<section class="section" id="platform">
+  <div class="wrap">
+    <div class="section-kicker">المنصة</div>
+    <h2>كل شركة تحصل على بنية الشركات المدرجة.</h2>
+    <p class="sub">لينكدإن وكرانشبيس وبلومبرغ — مجتمعةً، للاقتصاد الخاص.</p>
+
+    <div class="grid grid-3" style="margin-top:36px">
+      <div class="feature">
+        <div class="f-icon">🪪</div>
+        <h3>الملف الاقتصادي</h3>
+        <p>الهوية والقطاع والملكية والموظفون والشهادات والأسواق المخدومة ومرحلة النمو — صفحة مرجعية لكل شركة خاصة.</p>
+      </div>
+      <div class="feature">
+        <div class="f-icon">📈</div>
+        <h3>الصحة المالية</h3>
+        <p>الإيرادات والأرباح التشغيلية والهوامش والتدفق النقدي والديون والاتجاهات التاريخية. الشركة تختار ما تفصح عنه؛ والمؤشرات <b>الموثّقة</b> مميّزة بوضوح عن المصرّح بها ذاتيًا.</p>
+      </div>
+      <div class="feature">
+        <div class="f-icon">🤖</div>
+        <h3>تقييم الأعمال بالذكاء الاصطناعي</h3>
+        <p>قيمة المنشأة وقيمة الحقوق ونطاقات مقترحة وملف المخاطر ودرجات الجاذبية — مع إفصاح دائم عن المنهجية والافتراضات ومستوى الثقة. دعم للقرار، لا تقييم معتمد.</p>
+      </div>
+      <div class="feature">
+        <div class="f-icon">📣</div>
+        <h3>محرك الفرص</h3>
+        <p>انشر ما تحتاجه: مستثمرون، شركاء، موزعون، موردون، بيع حصص، تخارج كامل، استحواذات، مشاريع مشتركة، مناقصات، مشتريات، وفرص توسع.</p>
+      </div>
+      <div class="feature">
+        <div class="f-icon">💡</div>
+        <h3>لوحة توزيع رأس المال</h3>
+        <p>«خفض أيام التحصيل بـ 15 يومًا قد يحرّر 400,000 د.ك.» ليست شبكة علاقات — بل <b>ذكاء اقتصادي</b> يخبرك أين يعمل رأسمالك بأقصى جهد.</p>
+      </div>
+      <div class="feature">
+        <div class="f-icon">🧩</div>
+        <h3>ذكاء استغلال الأصول</h3>
+        <p>الأشخاص والآلات والمخازن والشاحنات وبراءات الاختراع والطاقة الإنتاجية — كل شيء رأسمال. الذكاء الاصطناعي يسأل باستمرار: أي الأصول معطّلة؟ ثم يجد الشركة القادرة على استغلالها.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= DEAL MANUFACTURING ================= -->
+<section class="section alt" id="engine">
+  <div class="wrap">
+    <div class="section-kicker">الاختراق</div>
+    <h2>الأسواق التقليدية تنتظر الصفقات. سمارت موني <span class="green">تصنعها.</span></h2>
+    <p class="sub">
+      التفكير القديم ينتظر أن يجد البشر بعضهم بعضًا. ذكاؤنا الاصطناعي يمسح الشبكة الاقتصادية
+      باستمرار بحثًا عن قيمة يغفل عنها الطرفان — ثم يقترح التعارف.
+    </p>
+    <div id="match-cards" style="margin-top:36px"></div>
+    <p style="margin-top:22px"><a class="btn btn-ghost" href="/ar/dashboard">شاهد كل المطابقات الحية في العرض ←</a></p>
+  </div>
+</section>
+
+<!-- ================= ECONOMIC GRAPH ================= -->
+<section class="section" id="graph-teaser">
+  <div class="wrap">
+    <div class="section-kicker">الشبكة الاقتصادية</div>
+    <h2>جوجل ترسم خريطة المواقع. لينكدإن ترسم خريطة المهنيين. بلومبرغ ترسم خريطة الشركات المدرجة.</h2>
+    <p class="sub">
+      ونحن نرسم خريطة <b>الاقتصادات الخاصة</b>. اضغط على شركة واحدة لترى مورّديها وعملاءها ومنافسيها
+      وشركاءها وأصولها المعطّلة وخيارات تمويلها وتعرّضها للمخاطر ومسارات توسعها — خريطة حيّة للتجارة.
+    </p>
+    <div class="grid grid-4" style="margin-top:36px">
+      <div class="stat"><div class="label">الشركات (تجريبي)</div><div class="value" id="stat-companies">—</div><div class="sub">ملفات اقتصادية موثّقة</div></div>
+      <div class="stat"><div class="label">علاقات مرسومة</div><div class="value" id="stat-edges">—</div><div class="sub">مورّد · عميل · منافس</div></div>
+      <div class="stat"><div class="label">مطابقات حية</div><div class="value" id="stat-matches">—</div><div class="sub">صفقات مصنوعة آليًا</div></div>
+      <div class="stat"><div class="label">تآزر مكتشَف</div><div class="value" id="stat-value">—</div><div class="sub">قيمة سنوية تقديرية</div></div>
+    </div>
+    <p style="margin-top:26px"><a class="btn btn-primary" href="/ar/graph">افتح الشبكة التفاعلية ←</a></p>
+  </div>
+</section>
+
+<!-- ================= PHASED ROADMAP ================= -->
+<section class="section alt" id="phases">
+  <div class="wrap">
+    <div class="section-kicker">آمنة تنظيميًا بالتصميم</div>
+    <h2>الذكاء أولًا. التداول أخيرًا — وعبر شركاء مرخّصين فقط.</h2>
+    <p class="sub">
+      تسهيل معاملات الأسهم يعني قوانين الأوراق المالية والترخيص ومكافحة غسل الأموال والتحقق من
+      العملاء وحماية المستثمرين. نتدرج نحو ذلك بعناية، لتنمو المنصة بأمان.
+    </p>
+    <div class="phases" style="margin-top:36px">
+      <div class="phase">
+        <div class="num">المرحلة 1 · مفعّلة</div>
+        <h3>الذكاء</h3>
+        <p>تقييمات تقديرية، وجاهزية استثمارية، وجاهزية استحواذ، ودرجات نمو. بدون تداول.</p>
+      </div>
+      <div class="phase">
+        <div class="num">المرحلة 2 · مفعّلة</div>
+        <h3>الإشارات</h3>
+        <p>الشركات تعلن نواياها: «منفتحة على المستثمرين»، «منفتحة على الاستحواذ»، «منفتحة على الشراكات». وما زالت ليست سوقًا للأوراق المالية.</p>
+      </div>
+      <div class="phase">
+        <div class="num">المرحلة 3 · قيد الإطلاق</div>
+        <h3>وصول موثّق</h3>
+        <p>مستثمرون موثّقون يطلبون الوصول. غرف بيانات سرية وفحص نافٍ للجهالة ومفاوضات — تحت اتفاقيات عدم إفصاح.</p>
+      </div>
+      <div class="phase locked">
+        <div class="num">المرحلة 4 · مستقبلًا</div>
+        <h3>معاملات منظَّمة</h3>
+        <p>فقط بعد الهيكلة القانونية والترخيص — أو عبر شركاء منظَّمين حيث يُشترط ذلك — يمكن تسهيل معاملات الأسهم الفعلية.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= OPPORTUNITY SCORE ================= -->
+<section class="section" id="score">
+  <div class="wrap">
+    <div class="section-kicker">كل صباح</div>
+    <h2>«لديك 14 فرصة جديدة.» ليست إشعارات. <span class="green">أموال.</span></h2>
+    <p class="sub">المنصة محرك فرص، لا قاعدة بيانات. كل صباح، ترى كل شركة ما وجدته الشبكة أثناء الليل:</p>
+    <div class="grid grid-2" style="margin-top:32px">
+      <div class="card"><p>💰 مصنع قريب يمكنه خفض تكاليفك بنسبة <b class="green">9%</b>.</p></div>
+      <div class="card"><p>🚚 شركة لوجستية لديها سعة غير مستغلة على مساراتك بالضبط.</p></div>
+      <div class="card"><p>🏗 شركة إنشاءات تبحث عن خبرتك تحديدًا.</p></div>
+      <div class="card"><p>👥 شركة عائلية تريد بيع <b class="gold">30%</b>.</p></div>
+      <div class="card"><p>🌍 موزّع يدخل سوقك.</p></div>
+      <div class="card"><p>📋 مناقصة حكومية تطابق قدراتك.</p></div>
+      <div class="card" style="grid-column:1/-1"><p>⚠️ عميلك الأكبر قد يكون متركّزًا أكثر من اللازم — إليك <b class="blue">ثلاثة عملاء محتملين</b> لتنويع الإيرادات.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= BUSINESS MODEL ================= -->
+<section class="section" id="model">
+  <div class="wrap">
+    <div class="section-kicker">نموذج العمل · محرك الصفقات</div>
+    <h2>لا نتقاضى رسوماً على الوصول أبداً. بل على الثقة والفعل والنتيجة.</h2>
+    <p class="sub">
+      اخترناه بعد محاكاة أحد عشر نموذج عمل وفق واقع السوق في الكويت والخليج —
+      سلّم قيمة من سبع درجات، كل دينار نكسبه مرتبط بقيمة تحققت فعلاً.
+      الخريطة الاقتصادية مجانية إلى الأبد، لأن الشبكة هي المنتج.
+    </p>
+    <div class="ladder" style="margin-top:36px">
+      <div class="rung"><div class="n">1</div><div><h4>خريطة اقتصادية مجانية</h4><p>الملف، نطاق التقييم بالذكاء الاصطناعي، وتغذية الفرص اليومية — مجاناً إلى الأبد. أكبر شبكة، وأكثر مطابقات للجميع.</p></div><div class="tag">محرك النمو</div></div>
+      <div class="rung"><div class="n">2</div><div><h4>التوثيق</h4><p>شارات «موثّق» مدققة عبر شركاء تدقيق مرخّصين. الثقة أندر الأصول في أعمال الخليج — والملف الموثّق يحصل على نطاق تقييم أدق وأولوية في المطابقة.</p></div><div class="tag">طبقة الثقة</div></div>
+      <div class="rung"><div class="n">3</div><div><h4>أرصدة التعارف</h4><p>تدفع فقط مقابل تعارف مقبول بموافقة الطرفين — يُسترد إن لم يتم الاجتماع، ويُخصم بالكامل من أي رسوم نجاح لاحقة. الدفع مقابل التعارف ليس مالاً ضائعاً أبداً.</p></div><div class="tag">طبقة الفعل</div></div>
+      <div class="rung"><div class="n">4</div><div><h4>رسوم النجاح</h4><p>نسبة صغيرة فقط عند إتمام شراكة أو صفقة طاقة تشغيلية أو استثمار أو استحواذ فعلياً — وتُهيكل رسوم الاندماج والاستحواذ عبر شركاء مرخّصين.</p></div><div class="tag">طبقة النتيجة</div></div>
+      <div class="rung"><div class="n">5</div><div><h4>مقاعد المنظومة</h4><p>البنوك وصناديق الملكية الخاصة والمكاتب العائلية ومكاتب المحاماة والتدقيق تشترك للحصول على تدفق صفقات مؤهل. هم يدفعون ليجدوك — وأنت لا تدفع أبداً لكي تُكتشف.</p></div><div class="tag">المؤسسات تدفع</div></div>
+      <div class="rung"><div class="n">6</div><div><h4>رعاية البنوك</h4><p>بنوك رئيسية ترعى وصول الشركات الموثّقة كقناة لتمويل المشاريع الصغيرة والمتوسطة — ترقيات مجانية لك، تموّلها المؤسسات الراغبة في إقراضك.</p></div><div class="tag">البنوك تدفع</div></div>
+      <div class="rung"><div class="n">7</div><div><h4>التراخيص المؤسسية</h4><p>صناديق المشاريع الصغيرة وغرف التجارة وجهات التنمية ترخّص المنصة لمنظوماتها — وصول حكومي دون اعتماد على القطاع الحكومي.</p></div><div class="tag">طبقة الجهات الحكومية</div></div>
+    </div>
+    <p style="margin-top:26px"><a class="btn btn-primary" href="/pricing">اطّلع على الأسعار كاملة ←</a></p>
+  </div>
+</section>
+
+<!-- ================= THE CAPITAL SIDE ================= -->
+<section class="section" id="investors">
+  <div class="wrap">
+    <div class="section-kicker">الجانب الآخر من الشبكة</div>
+    <h2>الشركة الباحثة عن تمويل ليست إلا نصف السوق.</h2>
+    <p class="sub">
+      البنوك وصناديق الملكية الخاصة والمكاتب العائلية تواجه المشكلة المعاكسة: رأس مال جاهز للاستثمار
+      دون طريقة موثوقة لرؤية الشركات الخاصة قبل أن يقودها وسيط إلى بابها. الشبكة نفسها التي تصنع
+      الصفقات للشركات تفلترها للمستثمرين — كل شركة تنشر إشارة تمويل، مقيَّمة وفق تفويض محدّد،
+      مع الإفصاح الكامل عن منهجية التقييم.
+    </p>
+    <div class="grid grid-3" style="margin-top:36px">
+      <div class="feature">
+        <div class="f-icon">🎚</div>
+        <h3>توافق التفويض، لا صندوق أسود</h3>
+        <p>القطاع والمرحلة وجودة البيانات المالية والمخاطر وموثوقية البيانات — كل عنصر يُحتسب ويُعرض على حدة. يستطيع المستثمر أن يرى بالضبط لماذا حلّت شركة في ترتيبها.</p>
+      </div>
+      <div class="feature">
+        <div class="f-icon">🧾</div>
+        <h3>فلترة قبل التواصل</h3>
+        <p>يُختبر حجم الشيك الضمني مقابل نطاق التفويض، ويُميَّز تركّز المحفظة قبل أن يُقترح أي تعريف. اجتماعات أقل، وأفضل.</p>
+      </div>
+      <div class="feature">
+        <div class="f-icon">🔒</div>
+        <h3>وصول، لا وساطة</h3>
+        <p>الاهتمام يفتح غرفة بيانات محمية باتفاقية سرية — المرحلة 3. سمارت موني لا تحتفظ بأموال، ولا تأخذ حصصًا، ولا تكون طرفًا مقابلًا في أي صفقة.</p>
+      </div>
+    </div>
+    <p style="margin-top:26px"><a class="btn btn-primary" href="/ar/investors">افتح منصة المستثمر ←</a></p>
+  </div>
+</section>
+
+<!-- ================= CLOSING ================= -->
+<section class="quote-band">
+  <blockquote>
+    جوجل نظّمت معلومات العالم.<br>
+    بلومبرغ نظّمت الأسواق المدرجة.<br>
+    <em>سمارت موني تنظّم الاقتصاد الخاص في العالم.</em>
+  </blockquote>
+  <div class="attr">نبدأ بالشركات الصغيرة في الكويت. نتوسع عبر الخليج. ثم العالم.</div>
+  <div style="margin-top:34px">
+    <a class="btn btn-primary" href="/ar/dashboard">جرّب المنصة ←</a>
+  </div>
+  <p class="faint" style="margin-top:30px;max-width:560px;margin-left:auto;margin-right:auto;font-size:13.5px">
+    الأصل الحقيقي لن يكون البرمجيات، بل شبكة الشركات الخاصة الموثوقة —
+    والخريطة الحصرية لكيفية تدفق القيمة بينها.
+  </p>
+</section>
+
+<script src="/assets/data.js"></script>
+<script src="/assets/data-ar.js"></script>
+<script src="/assets/common.js"></script>
+<script>
+  // ticker: live-looking match feed (duplicated for seamless loop)
+  const tick = document.getElementById("ticker");
+  const items = SM.matches.map(m => {
+    const a = SM.byId(m.a), b = SM.byId(m.b);
+    return `<span>${m.icon} ${a.name} <b>↔</b> ${b.name} · <b>${SM.fmtKD(m.value)}</b> ${m.valueLabel}</span>`;
+  });
+  tick.innerHTML = items.concat(items).join("");
+
+  // stats
+  const edges = SM.companies.reduce((n, c) =>
+    n + c.relationships.suppliers.length + c.relationships.customers.length + c.relationships.competitors.length, 0);
+  const synergy = SM.matches.reduce((n, m) => n + m.value, 0);
+  document.getElementById("stat-companies").textContent = SM.companies.length;
+  document.getElementById("stat-edges").textContent = edges;
+  document.getElementById("stat-matches").textContent = SM.matches.length;
+  document.getElementById("stat-value").textContent = SM.fmtKD(synergy);
+
+  // three showcase match cards
+  const wrap = document.getElementById("match-cards");
+  SM.matches.slice(0, 3).forEach(m => {
+    const a = SM.byId(m.a), b = SM.byId(m.b);
+    const div = document.createElement("div");
+    div.className = "opp";
+    div.innerHTML = `
+      <div class="icon" style="background:var(--green-soft)">${m.icon}</div>
+      <div class="body">
+        <div class="title"><a href="/ar/company?id=${a.id}" class="blue">${a.name}</a>
+          <span class="arrow">↔</span>
+          <a href="/ar/company?id=${b.id}" class="blue">${b.name}</a></div>
+        <div class="desc">${m.detail}</div>
+        <div class="value"><span class="green">${SM.fmtKD(m.value)}</span> <span class="dim">${m.valueLabel}</span>
+          · <span class="gold">ثقة المطابقة ${m.confidence}%</span></div>
+        <div class="actions">
+          <button class="btn btn-primary btn-sm" onclick="this.textContent='✓ تم طلب التعارف';this.disabled=true">اقترح تعارفًا</button>
+          <span class="chip">${m.type}</span>
+        </div>
+      </div>`;
+    wrap.append(div);
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dashboard — Smart Money</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/style.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%232fd48a'/><text x='50' y='70' font-size='60' text-anchor='middle' font-family='monospace' font-weight='bold' fill='%2305261a'>S</text></svg>">
+</head>
+<body data-page="app">
+
+<main class="wrap" id="main"><p class="dim" style="padding:60px 0">Loading…</p></main>
+
+<script src="/assets/common.js"></script>
+<script type="module">
+import { supabase, requireSession, myCompanies, signOut, fmtKD, listOpportunities,
+         getValuation, getScoreComponents, getSubscription, OPP_ICONS, track } from "/assets/supabase.js";
+
+const session = await requireSession();
+if (session) {
+  const main = document.getElementById("main");
+  const params = new URLSearchParams(location.search);
+
+  const { data: mine, error } = await myCompanies();
+  if (error) {
+    main.innerHTML = `<div class="card"><p class="red">Could not load your companies: ${error.message}</p></div>`;
+  } else if (!mine?.length) {
+    main.innerHTML = `
+      <div class="card" style="text-align:center;padding:54px 22px;margin-top:40px">
+        <div style="font-size:30px;margin-bottom:10px">🏗</div>
+        <h3>Welcome to Smart Money</h3>
+        <p class="dim" style="margin:8px auto 0;max-width:440px">
+          Create your company profile to get a free AI valuation, your Business Score,
+          and matched opportunities from the economic graph.</p>
+        <p style="margin-top:22px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+          <a class="btn btn-primary" href="/app/onboarding">Create my company →</a>
+          <a class="btn btn-ghost" href="/app/invest">I'm an investor</a>
+        </p>
+      </div>`;
+  } else {
+    const company = (mine.find((r) => r.companies.id === params.get("company")) || mine[0]).companies;
+    track("dashboard_viewed", { company_id: company.id });
+
+    const [{ data: val }, { data: sc }, { data: opps }, { data: sub },
+           { data: tenders }, { data: deals }, { data: conns }] = await Promise.all([
+      getValuation(company.id),
+      getScoreComponents(company.id),
+      listOpportunities(company.id),
+      getSubscription(company.id),
+      supabase.from("tenders").select("id").eq("status", "open"),
+      supabase.from("deals").select("id, stage")
+        .or(`company_a_id.eq.${company.id},company_b_id.eq.${company.id}`)
+        .not("stage", "in", '("completed","lost")'),
+      supabase.from("connections").select("id, status").eq("to_company_id", company.id).eq("status", "pending"),
+    ]);
+
+    const firstName = (session.user.user_metadata?.full_name || session.user.email).split(/[@ ]/)[0];
+    const hour = new Date().getHours();
+    const greeting = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
+    const newOpps = (opps || []).filter((o) => o.status === "proposed");
+    const potential = newOpps.reduce((n, o) => n + Number(o.potential_value || 0), 0);
+    const plan = sub?.plan || "free";
+    const visibleLimit = plan === "free" ? 3 : Infinity;
+
+    const oppCard = (o) => `
+      <div class="opp">
+        <div class="icon" style="background:var(--green-soft)">${OPP_ICONS[o.type] || "✨"}</div>
+        <div class="body">
+          <div class="title">${o.headline}</div>
+          <div class="desc">${o.why_match}</div>
+          <div class="value">
+            ${o.potential_value ? `<span class="green">${fmtKD(o.potential_value)}</span> <span class="dim">${o.value_label || ""}</span> · ` : ""}
+            <span class="gold">${o.score}/100 opportunity score</span>
+            · <span class="chip" style="font-size:11px">${o.type.replace("_", " ")}</span>
+          </div>
+        </div>
+      </div>`;
+
+    main.innerHTML = `
+    <div class="page-head" style="display:flex;justify-content:space-between;align-items:flex-end;gap:18px;flex-wrap:wrap;padding-bottom:20px">
+      <div>
+        <div class="panel-title" style="margin-bottom:6px">
+          ${new Date().toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" })}
+          · ${plan.toUpperCase()} plan</div>
+        <h1>${greeting}, ${firstName}</h1>
+        <p class="dim" style="margin-top:6px">Here is ${company.name} today.</p>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+        ${mine.length > 1 ? `
+          <select id="switcher">
+            ${mine.map(({ companies: c }) => `
+              <option value="${c.id}" ${c.id === company.id ? "selected" : ""}>${c.name}</option>`).join("")}
+          </select>` : ""}
+        <a class="btn btn-ghost btn-sm" href="/app/company?id=${company.id}">My company</a>
+        <button class="btn btn-ghost btn-sm" id="signout">Sign out</button>
+      </div>
+    </div>
+
+    <div class="grid grid-4">
+      <div class="stat">
+        <div class="label">Estimated value</div>
+        <div class="value">${val ? fmtKD((Number(val.low) + Number(val.high)) / 2) : "—"}</div>
+        <div class="sub">${val ? `range ${fmtKD(val.low)} – ${fmtKD(val.high)}` :
+          `<a class="blue" href="/app/valuation?id=${company.id}">get your free valuation →</a>`}</div>
+      </div>
+      <div class="stat">
+        <div class="label">Business score</div>
+        <div class="value ${sc?.total >= 70 ? "green" : sc?.total >= 45 ? "gold" : ""}">${sc?.total ?? "—"}<span class="dim" style="font-size:15px">${sc?.total ? "/100" : ""}</span></div>
+        <div class="sub">${sc ? "vs " + company.industry + " benchmarks" : "needs financials"}</div>
+      </div>
+      <div class="stat">
+        <div class="label">New opportunities</div>
+        <div class="value green">${newOpps.length}</div>
+        <div class="sub">${potential > 0 ? fmtKD(potential) + " potential value" : "from the economic graph"}</div>
+      </div>
+      <div class="stat">
+        <div class="label">Live activity</div>
+        <div class="value">${(deals || []).length + (conns || []).length}</div>
+        <div class="sub">${(deals || []).length} active deals · ${(conns || []).length} intro requests
+          · ${(tenders || []).length} open tenders</div>
+      </div>
+    </div>
+
+    <div class="split" style="margin-top:26px">
+      <div>
+        <div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px">
+          <div class="panel-title">Your top opportunities today</div>
+          <a class="blue" style="font-size:13px" href="/app/opportunities?company=${company.id}">All opportunities →</a>
+        </div>
+        ${newOpps.length
+          ? newOpps.slice(0, visibleLimit === Infinity ? 5 : visibleLimit).map(oppCard).join("")
+          : `<div class="card"><p class="dim" style="font-size:14px">
+               Nothing new overnight. Publishing more signals and objectives gives the engine
+               more to match on — <a class="blue" href="/app/company?id=${company.id}">update your profile</a>.</p></div>`}
+        ${newOpps.length > visibleLimit ? `
+          <div class="card" style="text-align:center;border-style:dashed">
+            <p class="dim" style="font-size:13.5px">${newOpps.length - visibleLimit} more matches are waiting.
+              The Free plan shows your top ${visibleLimit}.</p>
+            <a class="btn btn-primary btn-sm" style="margin-top:10px" href="/pricing">Grow my business →</a>
+          </div>` : ""}
+      </div>
+
+      <div>
+        <div class="card" style="border-color:rgba(47,212,138,.35)">
+          <div class="panel-title">Know your value</div>
+          ${val ? `
+            <div style="font-family:var(--font-display);font-size:21px;font-weight:700">
+              ${fmtKD(val.low)} – ${fmtKD(val.high)}</div>
+            <div class="dim" style="font-size:12.5px;margin-top:4px">confidence: ${val.confidence}</div>
+            ${val.potential_high ? `
+              <div class="gold mono" style="font-size:13px;margin-top:10px">
+                value gap: +${fmtKD(Math.max(0, (Number(val.potential_low) + Number(val.potential_high)) / 2 - (Number(val.low) + Number(val.high)) / 2))}</div>` : ""}
+            <a class="btn btn-ghost btn-sm" style="margin-top:14px" href="/app/valuation?id=${company.id}">Full valuation →</a>`
+          : `
+            <p class="dim" style="font-size:13.5px">Three years of figures produce an estimated
+              enterprise and equity value, your Business Score, and your Value Gap.</p>
+            <a class="btn btn-primary btn-sm" style="margin-top:14px" href="/app/valuation?id=${company.id}">
+              Value my business</a>`}
+        </div>
+
+        <div class="card">
+          <div class="panel-title">Quick actions</div>
+          <div style="display:grid;gap:8px">
+            <a class="btn btn-ghost btn-sm" href="/app/opportunities?company=${company.id}">✨ Review opportunities</a>
+            <a class="btn btn-ghost btn-sm" href="/app/capital?company=${company.id}">💡 Capital allocation</a>
+            <a class="btn btn-ghost btn-sm" href="/app/deals?company=${company.id}">📈 Deal pipeline
+              ${(deals || []).length ? `<span class="chip blue" style="margin-left:4px">${deals.length} active</span>` : ""}</a>
+            <a class="btn btn-ghost btn-sm" href="/app/tenders?company=${company.id}">📋 Tenders &amp; RFQs</a>
+            <a class="btn btn-ghost btn-sm" href="/app/proposals">📨 My proposals</a>
+            <a class="btn btn-ghost btn-sm" href="/app/billing?company=${company.id}">💳 Billing &amp; plan</a>
+            <a class="btn btn-ghost btn-sm" href="/app/messages?company=${company.id}">💬 Messages
+              ${(conns || []).length ? `<span class="chip gold" style="margin-left:4px">${conns.length} pending</span>` : ""}</a>
+            <a class="btn btn-ghost btn-sm" href="/companies">🔍 Browse companies</a>
+          </div>
+        </div>
+
+        ${mine.length > 1 ? "" : `
+        <div class="card">
+          <div class="panel-title">Add another company</div>
+          <p class="dim" style="font-size:13px">Holdings and groups can manage multiple profiles.</p>
+          <a class="btn btn-ghost btn-sm" style="margin-top:10px" href="/app/onboarding">＋ New company</a>
+        </div>`}
+      </div>
+    </div>`;
+
+    document.getElementById("signout").onclick = async () => { await signOut(); location.href = "/"; };
+    const switcher = document.getElementById("switcher");
+    if (switcher) switcher.onchange = () => location.href = "/app?company=" + switcher.value;
+  }
+}
+</script>
+</body>
+</html>

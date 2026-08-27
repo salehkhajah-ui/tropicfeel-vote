@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>My proposals — Smart Money</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/style.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%232fd48a'/><text x='50' y='70' font-size='60' text-anchor='middle' font-family='monospace' font-weight='bold' fill='%2305261a'>S</text></svg>">
+</head>
+<body data-page="app">
+
+<main class="wrap" id="main"><p class="dim" style="padding:60px 0">Loading…</p></main>
+
+<script src="/assets/common.js"></script>
+<script type="module">
+import { supabase, requireSession, fmtKD, myProposals, startPayment, track } from "/assets/supabase.js";
+
+const session = await requireSession();
+if (session) {
+  const main = document.getElementById("main");
+  const params = new URLSearchParams(location.search);
+  const { data: props } = await myProposals();
+  track("proposals_viewed", {});
+
+  const STATUS = {
+    pending_payment: ["gold", "awaiting payment — not delivered"],
+    sent: ["blue", "delivered"],
+    viewed: ["violet", "viewed by the company"],
+    accepted: ["green", "accepted 🎉"],
+    declined: ["red", "declined"],
+  };
+
+  const result = params.get("result");
+  main.innerHTML = `
+  <p style="margin:26px 0 0"><a class="dim" href="/app">← Dashboard</a></p>
+
+  ${result === "success" ? `<div class="disclaimer" style="margin-top:16px;border-color:var(--green)">
+    <span class="green"><b>Payment received — your proposal is on its way.</b></span>
+    The company's owners have been notified.</div>` : ""}
+  ${result === "cancelled" ? `<div class="disclaimer" style="margin-top:16px;border-color:var(--gold)">
+    <b>Payment cancelled.</b> Nothing was charged — your proposal is saved below and can be paid any time.</div>` : ""}
+
+  <div class="page-head" style="padding-top:16px;display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap">
+    <div>
+      <h1>My proposals</h1>
+      <p>Every proposal you have sent to businesses on Smart Money, and where it stands.</p>
+    </div>
+    <a class="btn btn-primary" href="/app/invest">Browse businesses →</a>
+  </div>
+
+  <div id="list">
+    ${(props || []).length ? (props || []).map((p) => {
+      const [tone, label] = STATUS[p.status] || ["", p.status];
+      return `
+      <div class="card" data-id="${p.id}" style="margin-bottom:14px${p.status === "pending_payment" ? ";border-style:dashed" : ""}">
+        <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap">
+          <div style="flex:1;min-width:240px">
+            <b style="font-size:15px">${p.subject}</b>
+            <div class="faint" style="font-size:12.5px;margin-top:3px">
+              To ${p.companies?.name || "company"} · ${new Date(p.created_at).toLocaleDateString("en-GB")}
+              ${p.offer_amount ? ` · offer <span class="mono green">${fmtKD(p.offer_amount)}</span>` : ""}</div>
+            <p class="dim" style="font-size:13.5px;margin-top:8px;white-space:pre-wrap">${p.body}</p>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px;align-items:flex-end;min-width:170px">
+            <span class="chip ${tone}">${label}</span>
+            ${p.status === "pending_payment"
+              ? `<button class="btn btn-primary btn-sm" data-act="pay">Pay &amp; deliver</button>` : ""}
+          </div>
+        </div>
+      </div>`;
+    }).join("") : `
+    <div class="card" style="text-align:center;padding:44px 22px">
+      <div style="font-size:28px;margin-bottom:8px">📨</div>
+      <h3>No proposals yet</h3>
+      <p class="dim" style="margin:8px auto 0;max-width:420px">
+        Find a business you believe in and send its owners a proposal —
+        investment, partnership, acquisition, or supply.</p>
+      <a class="btn btn-primary" style="margin-top:18px" href="/app/invest">Browse businesses →</a>
+    </div>`}
+  </div>`;
+
+  document.getElementById("list").addEventListener("click", async (e) => {
+    const btn = e.target.closest("button[data-act='pay']");
+    if (!btn) return;
+    btn.disabled = true;
+    const id = btn.closest("[data-id]").dataset.id;
+    const { data: inv } = await supabase.from("invoices").select("id")
+      .eq("kind", "proposal_fee").eq("ref_id", id).eq("status", "open")
+      .order("created_at", { ascending: false }).limit(1).maybeSingle();
+    if (!inv) { alert("The payment window expired — please send the proposal again."); btn.disabled = false; return; }
+    const { data, error } = await startPayment(inv.id, "/app/proposals");
+    if (error || !data?.url) { alert(error?.message || "Could not start the payment."); btn.disabled = false; return; }
+    location.href = data.url;
+  });
+}
+</script>
+</body>
+</html>

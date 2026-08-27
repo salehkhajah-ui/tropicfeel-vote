@@ -1,34 +1,36 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Company Directory — Smart Money</title>
+<title>دليل الشركات — سمارت موني</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/assets/style.css">
+<link rel="alternate" hreflang="en" href="/companies">
+<link rel="alternate" hreflang="ar" href="/ar/companies">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%232fd48a'/><text x='50' y='70' font-size='60' text-anchor='middle' font-family='monospace' font-weight='bold' fill='%2305261a'>S</text></svg>">
 </head>
 <body data-page="companies">
 
 <main class="wrap">
   <div class="page-head">
-    <h1>Company Directory</h1>
-    <p>Every private company, discoverable. Filter by industry, market, or intent — each profile carries verified financial health, an AI valuation range, and live opportunity signals.</p>
+    <h1>دليل الشركات</h1>
+    <p>كل شركة خاصة، قابلة للاكتشاف. رشّح حسب القطاع أو السوق أو النية — كل ملف يحمل صحة مالية موثّقة ونطاق تقييم بالذكاء الاصطناعي وإشارات فرص حية.</p>
   </div>
 
   <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:22px">
-    <input type="search" id="q" placeholder="Search companies…" style="flex:1;min-width:220px">
-    <select id="f-industry"><option value="">All industries</option></select>
+    <input type="search" id="q" placeholder="ابحث عن الشركات…" style="flex:1;min-width:220px">
+    <select id="f-industry"><option value="">كل القطاعات</option></select>
     <select id="f-signal">
-      <option value="">All signals</option>
-      <option>Open to investors</option>
-      <option>Open to acquisition</option>
-      <option>Open to partnerships</option>
-      <option>Selling</option>
-      <option>Expanding</option>
-      <option>Looking for</option>
+      <option value="">كل الإشارات</option>
+      <option value="منفتحة على المستثمرين">منفتحة على المستثمرين</option>
+      <option value="منفتحة على الاستحواذ">منفتحة على الاستحواذ</option>
+      <option value="منفتحة على الشراكات">منفتحة على الشراكات</option>
+      <option value="تبيع">تبيع</option>
+      <option value="تتوسع">تتوسع</option>
+      <option value="تبحث عن">تبحث عن</option>
     </select>
   </div>
 
@@ -37,12 +39,12 @@
       <table class="data" id="tbl">
         <thead>
           <tr>
-            <th>Company</th>
-            <th>Industry</th>
-            <th>Revenue</th>
-            <th>AI Valuation Range</th>
-            <th>Opportunity Score</th>
-            <th>Signals</th>
+            <th>الشركة</th>
+            <th>القطاع</th>
+            <th>الإيرادات</th>
+            <th>نطاق التقييم الذكي</th>
+            <th>درجة الفرص</th>
+            <th>الإشارات</th>
           </tr>
         </thead>
         <tbody></tbody>
@@ -51,12 +53,13 @@
   </div>
 
   <p class="faint" style="margin-top:16px;font-size:13px">
-    Valuation ranges are AI model estimates for decision support — not certified appraisals.
-    All companies shown are fictional demo data.
+    نطاقات التقييم تقديرات نماذج ذكاء اصطناعي لدعم القرار — وليست تقييمات معتمدة.
+    جميع الشركات المعروضة بيانات تجريبية افتراضية.
   </p>
 </main>
 
 <script src="/assets/data.js"></script>
+<script src="/assets/data-ar.js"></script>
 <script src="/assets/common.js"></script>
 <script>
   const tbody = document.querySelector("#tbl tbody");
@@ -72,17 +75,17 @@
 
   function render() {
     const term = q.value.trim().toLowerCase();
-    const ind = fInd.value, sig = fSig.value.toLowerCase();
+    const ind = fInd.value, sig = fSig.value;
     tbody.innerHTML = "";
     SM.companies
       .filter(c => (!term || (c.name + c.location + c.about).toLowerCase().includes(term)))
       .filter(c => (!ind || c.industry === ind))
-      .filter(c => (!sig || c.signals.some(s => s.toLowerCase().includes(sig))))
+      .filter(c => (!sig || c.signals.some(s => s.includes(sig))))
       .sort((a, b) => b.scores.opportunity - a.scores.opportunity)
       .forEach(c => {
         const tr = document.createElement("tr");
         tr.style.cursor = "pointer";
-        tr.onclick = () => location.href = "/company?id=" + c.id;
+        tr.onclick = () => location.href = "/ar/company?id=" + c.id;
         tr.innerHTML = `
           <td>
             <div style="display:flex;align-items:center;gap:12px">
@@ -95,7 +98,7 @@
           </td>
           <td><span class="chip">${c.industry}</span></td>
           <td class="mono">${SM.fmtKD(c.financials.revenue)}
-            ${c.financials.verified.includes("revenue") ? '<span class="badge-verified">VERIFIED</span>' : '<span class="badge-self">SELF-REP</span>'}</td>
+            ${c.financials.verified.includes("revenue") ? '<span class="badge-verified">مُوثَّق</span>' : '<span class="badge-self">تصريح ذاتي</span>'}</td>
           <td class="mono">${SM.fmtRange(c.valuation.low, c.valuation.high)}</td>
           <td>
             <div style="display:flex;align-items:center;gap:10px;min-width:120px">
@@ -109,7 +112,7 @@
         tbody.append(tr);
       });
     if (!tbody.children.length) {
-      tbody.innerHTML = `<tr><td colspan="6" class="dim" style="text-align:center;padding:32px">No companies match your filters.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="6" class="dim" style="text-align:center;padding:32px">لا توجد شركات تطابق مرشحاتك.</td></tr>`;
     }
   }
 

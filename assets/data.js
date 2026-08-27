@@ -416,13 +416,100 @@ window.SM = (function () {
     }
   ];
 
+  /* The demo investor — the capital side of the network (/investors) */
+  const investor = {
+    name: "Bayt Al-Mal Capital",
+    short: "BM",
+    color: "#a48aff",
+    type: "Family office · lower-mid-market private equity",
+    based: "Kuwait City, Kuwait",
+    aum: 48000000,
+    mandate: {
+      ticketMin: 200000,
+      ticketMax: 2500000,
+      sectors: ["Food Manufacturing", "Logistics", "Warehousing", "Healthcare Distribution", "Food & Agriculture"],
+      adjacent: ["Manufacturing", "Retail & Distribution", "Automotive Distribution"],
+      stages: ["Growth", "Established"],
+      stagesNear: ["Mature"],
+      hold: "4–7 years",
+      control: "Minority with governance rights; selective control buyouts"
+    },
+    portfolio: [
+      { name: "Arabian Cold Chain", sector: "Logistics", invested: 1800000, year: 2021 },
+      { name: "Gulf Dates Processing", sector: "Food Manufacturing", invested: 2400000, year: 2022 },
+      { name: "Medina Diagnostics", sector: "Healthcare Distribution", invested: 1200000, year: 2023 },
+      { name: "Shuwaikh Logistics Park", sector: "Warehousing", invested: 2200000, year: 2024 }
+    ]
+  };
+
+  /* Companies actively seeking capital, and on what terms.
+     Each entry corresponds to a capital signal published on the company's profile. */
+  const raises = [
+    { id: "sidra", type: "Joint venture", stake: 40, use: "JV vehicle for regional cold-chain expansion into Qatar and Bahrain." },
+    { id: "noor", type: "Growth capital", stake: 22, use: "Own warehousing capacity and widen the device portfolio beyond consumables." },
+    { id: "gulfbridge", type: "Minority stake", stake: 15, use: "Refinance the fleet and rebuild utilisation after the retail contract loss." },
+    { id: "alsahel", type: "Succession / partial exit", stake: 30, use: "Founder liquidity and a structured second-generation transition." },
+    { id: "aldeera", type: "Minority stake", stake: 20, use: "Working capital to shorten the receivables cycle, plus scaffolding fleet expansion." },
+    { id: "falcon", type: "Sale-and-leaseback", stake: 100, use: "Release the capital tied up in the Amghara facility while retaining operations." },
+    { id: "qortuba", type: "Control acquisition", stake: 100, use: "Full exit — second-generation owners retiring, management team stays." },
+    { id: "dana", type: "Carve-out", stake: 30, use: "Sale of 30% of the catering arm to fund the real-estate portfolio." }
+  ];
+
+  /* Indicative cheque implied by a raise, and whether it clears the mandate band. */
+  const dealTicket = (c, r) => Math.round(c.valuation.point * (r.stake / 100));
+  const inMandate = (ticket, inv) => {
+    const m = (inv || investor).mandate;
+    return ticket >= m.ticketMin && ticket <= m.ticketMax;
+  };
+
+  /* Mandate fit — always returned with its component breakdown, never as a bare number.
+     Same principle as the valuations: the method is disclosed alongside the score. */
+  const fitScore = (c, inv) => {
+    const m = (inv || investor).mandate;
+    const sector = m.sectors.includes(c.industry) ? 30 : m.adjacent.includes(c.industry) ? 14 : 4;
+    // Stage tiers mirror the sector tiers — target, near-target, off-mandate. Both are read
+    // from the mandate rather than compared against literals, so the Arabic overlay can
+    // translate company stages and mandate stages together and keep scores identical.
+    const stage = m.stages.includes(c.stage) ? 20
+      : (m.stagesNear || []).includes(c.stage) ? 10 : 6;
+    const quality = Math.round((c.scores.investment / 100) * 25);
+    const risk = Math.round(((100 - c.scores.risk) / 100) * 15);
+    const data = [3, 6, 8, 10][Math.min(c.financials.verified.length, 3)];
+    return {
+      total: sector + stage + quality + risk + data,
+      parts: [
+        { label: "Sector", v: sector, max: 30 },
+        { label: "Stage", v: stage, max: 20 },
+        { label: "Quality", v: quality, max: 25 },
+        { label: "Risk", v: risk, max: 15 },
+        { label: "Data", v: data, max: 10 }
+      ]
+    };
+  };
+
+  /* Share of deployed capital already sitting in each sector — drives concentration flags. */
+  const sectorExposure = (inv) => {
+    const p = (inv || investor).portfolio;
+    const total = p.reduce((n, h) => n + h.invested, 0);
+    const by = {};
+    p.forEach((h) => { by[h.sector] = (by[h.sector] || 0) + h.invested; });
+    return Object.entries(by)
+      .map(([sector, invested]) => ({ sector, invested, pct: Math.round((invested / total) * 100) }))
+      .sort((a, b) => b.pct - a.pct);
+  };
+
   const fmtKD = (n) => {
     if (n >= 1000000) return (n / 1000000).toFixed(n % 1000000 === 0 ? 0 : 1) + "M KD";
     if (n >= 1000) return Math.round(n / 1000) + "K KD";
     return n + " KD";
   };
   const fmtKDfull = (n) => n.toLocaleString("en-US") + " KD";
+  const fmtRange = (a, b) => SM.fmtKD(a) + " – " + SM.fmtKD(b);
   const byId = (id) => companies.find((c) => c.id === id);
 
-  return { companies, matches, insights, benchmarks, multiples, fmtKD, fmtKDfull, byId };
+  return {
+    companies, matches, insights, benchmarks, multiples,
+    investor, raises, dealTicket, inMandate, fitScore, sectorExposure,
+    fmtKD, fmtKDfull, fmtRange, byId
+  };
 })();

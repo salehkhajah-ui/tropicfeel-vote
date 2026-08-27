@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>What is your business worth? — Smart Money</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/style.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%232fd48a'/><text x='50' y='70' font-size='60' text-anchor='middle' font-family='monospace' font-weight='bold' fill='%2305261a'>S</text></svg>">
+</head>
+<body data-page="app">
+
+<main class="wrap" id="main"><p class="dim" style="padding:60px 0">Loading…</p></main>
+
+<script src="/assets/common.js"></script>
+<script type="module">
+import { supabase, requireSession, myCompanies, getFinancials, getValuation,
+         getScoreComponents, getValueGapActions, getSubscription, getBenchmark,
+         uploadFinancialDocument, listFinancialDocuments, analyzeFinancialDocument,
+         deleteFinancialDocument, listAiInsights, valuationLetter, fmtKD, track } from "/assets/supabase.js";
+
+const session = await requireSession();
+if (session) {
+  const main = document.getElementById("main");
+  const params = new URLSearchParams(location.search);
+
+  const { data: mine } = await myCompanies();
+  if (!mine?.length) { location.replace("/app/onboarding"); throw new Error("no company"); }
+  const company = (mine.find((r) => r.companies.id === params.get("id")) || mine[0]).companies;
+
+  track("valuation_page_viewed", { company_id: company.id });
+
+  const thisYear = new Date().getFullYear();
+  const years = [thisYear - 3, thisYear - 2, thisYear - 1];
+  const { data: fin } = await getFinancials(company.id);
+  const byYear = Object.fromEntries((fin || []).map((f) => [f.fiscal_year, f]));
+
+  const FIELDS = [
+    ["revenue", "Revenue"], ["ebitda", "EBITDA / operating profit"], ["net_income", "Net income"],
+    ["cash_flow", "Operating cash flow"], ["assets", "Total assets"], ["liabilities", "Total liabilities"],
+    ["debt", "Debt"], ["cash", "Cash"],
+  ];
+
+  const inputRow = (key, label) => `
+    <tr>
+      <td class="dim" style="white-space:nowrap">${label}</td>
+      ${years.map((y) => `
+        <td><input type="number" step="1000" data-f="${key}" data-y="${y}"
+             value="${byYear[y]?.[key] ?? ""}" style="width:100%;min-width:110px"></td>`).join("")}
+    </tr>`;
+
+  main.innerHTML = `
+  <p style="margin:26px 0 0"><a class="dim" href="/app">← Dashboard</a></p>
+  <div class="page-head" style="padding-top:18px;padding-bottom:14px">
+    <h1>What is ${company.name} worth?</h1>
+    <p>Upload your audited financials — the AI reads them, fills in your figures, updates your
+       valuation, and flags the opportunities it finds. Everything starts
+       <span class="badge-self">SELF-REPORTED</span> and private.</p>
+  </div>
+
+  <!-- ============ HERO: upload & analyze ============ -->
+  <div class="card upload-hero">
+    <div class="section-kicker" style="margin-bottom:4px">Option 1 · Recommended</div>
+    <div style="font-size:34px">🤖</div>
+    <h2 style="font-size:clamp(20px,2.6vw,26px);margin-top:10px">Upload your audited financials</h2>
+    <p class="dim" style="max-width:520px;margin:8px auto 0;font-size:14.5px">
+      One PDF. The AI extracts up to three years of figures, values your business against
+      ${company.industry} benchmarks, and looks for opportunities in your numbers — in about a minute.</p>
+
+    <label class="dropzone" id="dropzone">
+      <input type="file" id="doc-file" accept="application/pdf" hidden>
+      <span id="drop-label">📄 Drag &amp; drop your PDF here, or <span class="blue">browse</span></span>
+    </label>
+
+    <button class="btn btn-primary" id="doc-analyze" style="margin-top:16px;font-size:16px;padding:14px 30px">
+      Analyze</button>
+    <div id="doc-status" class="dim" style="font-size:13px;margin-top:12px"></div>
+    <div id="doc-list" style="margin-top:10px;max-width:460px;margin-left:auto;margin-right:auto;text-align:left"></div>
+    <p class="faint" style="font-size:12px;margin-top:14px">
+      PDF only · max 32 MB · stored privately, visible only to your company and Smart Money verification.</p>
+  </div>
+
+  <!-- ============ actions ============ -->
+  <div style="display:flex;gap:12px;align-items:center;margin-top:26px;flex-wrap:wrap">
+    <button class="btn btn-primary" id="run">Value my business</button>
+    <a class="btn btn-ghost" href="/app/company?id=${company.id}">View my company profile →</a>
+    <span class="faint" id="status" style="font-size:13px"></span>
+  </div>
+
+  <!-- ============ secondary: manual entry ============ -->
+  <div id="manual" style="margin-top:34px">
+    <div class="section-kicker">Option 2 · Enter figures manually</div>
+    <p class="dim" style="font-size:14px;max-width:640px;margin-top:4px">
+      Prefer to type them in? Fill in what you have — the engine values you from whatever
+      figures are available, and you can always upload the statements later.</p>
+    <div class="card" style="padding:0;margin-top:14px">
+      <div class="table-scroll">
+        <table class="data">
+          <thead><tr><th>KD</th>${years.map((y) => `<th>FY ${y}</th>`).join("")}</tr></thead>
+          <tbody>${FIELDS.map(([k, l]) => inputRow(k, l)).join("")}
+            <tr>
+              <td class="dim">Receivable days</td>
+              ${years.map((y) => `
+                <td><input type="number" data-f="receivable_days" data-y="${y}"
+                     value="${byYear[y]?.receivable_days ?? ""}" style="width:100%;min-width:110px"></td>`).join("")}
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="grid grid-2" style="margin-top:14px">
+      <label class="card" style="display:block">
+        <div class="panel-title" style="margin-bottom:6px">Shares outstanding (optional)</div>
+        <input type="number" id="shares" min="1" value="${company.shares_outstanding ?? ""}" style="width:100%">
+        <p class="faint" style="font-size:12px;margin-top:8px">Enables an implied value-per-share estimate.</p>
+      </label>
+      <label class="card" style="display:block">
+        <div class="panel-title" style="margin-bottom:6px">Top customer, % of revenue (optional)</div>
+        <input type="number" id="concentration" min="0" max="100" value="${company.top_customer_share_pct ?? ""}" style="width:100%">
+        <p class="faint" style="font-size:12px;margin-top:8px">Concentration is a major valuation driver.</p>
+      </label>
+    </div>
+
+  </div>
+
+  <div id="ai-insights" style="margin-top:26px"></div>
+
+  <div id="results" style="margin-top:26px"></div>
+
+  <p class="faint" style="margin:40px 0 0;font-size:12.5px;max-width:720px">
+    Smart Money valuations are AI/model estimates for decision support only — never a certified
+    appraisal, an offer, investment advice, or an exchange-traded price. Figures you enter here are
+    private by default.
+  </p>`;
+
+  const num = (el) => (el.value.trim() === "" ? null : Number(el.value));
+
+  async function save() {
+    const rows = {};
+    document.querySelectorAll("input[data-f]").forEach((el) => {
+      const y = el.dataset.y;
+      rows[y] = rows[y] || { company_id: company.id, fiscal_year: Number(y) };
+      rows[y][el.dataset.f] = num(el);
+    });
+    const toSave = Object.values(rows).filter((r) =>
+      Object.keys(r).some((k) => !["company_id", "fiscal_year"].includes(k) && r[k] !== null));
+    for (const r of toSave) {
+      if (r.revenue && r.ebitda) r.margin = Number(((r.ebitda / r.revenue) * 100).toFixed(2));
+      const { error } = await supabase.from("company_financials")
+        .upsert(r, { onConflict: "company_id,fiscal_year" });
+      if (error) throw error;
+    }
+    const patch = {};
+    const sh = num(document.getElementById("shares"));
+    const conc = num(document.getElementById("concentration"));
+    if (sh !== company.shares_outstanding) patch.shares_outstanding = sh;
+    if (conc !== company.top_customer_share_pct) patch.top_customer_share_pct = conc;
+    if (Object.keys(patch).length) {
+      const { error } = await supabase.from("companies").update(patch).eq("id", company.id);
+      if (error) throw error;
+    }
+    return toSave.length;
+  }
+
+  const ring = (value, label, size = 72) => `
+    <div style="text-align:center">
+      <div class="score-ring" style="--v:${value ?? 0};width:${size}px;height:${size}px">
+        <span>${value ?? "—"}</span>
+      </div>
+      <div class="faint" style="font-size:11px;margin-top:6px;text-transform:uppercase;letter-spacing:.08em">${label}</div>
+    </div>`;
+
+  async function renderResults() {
+    const [{ data: v }, { data: sc }, { data: gap }, { data: sub }] = await Promise.all([
+      getValuation(company.id), getScoreComponents(company.id),
+      getValueGapActions(company.id), getSubscription(company.id),
+    ]);
+    const results = document.getElementById("results");
+    if (!v) {
+      results.innerHTML = `<div class="card"><p class="dim">No valuation yet — add at least revenue for one year and run the engine.</p></div>`;
+      return;
+    }
+    const plan = sub?.plan || "free";
+    const gapValue = v.potential_high && v.high ? Math.max(0, ((Number(v.potential_low) + Number(v.potential_high)) / 2) - ((Number(v.low) + Number(v.high)) / 2)) : 0;
+    const bench = (await getBenchmark(company.industry)).data;
+
+    const comp = sc ? [
+      ["Growth", sc.growth], ["Profitability", sc.profitability], ["Cash flow", sc.cash_flow],
+      ["Financial health", sc.financial_health], ["Debt", sc.debt], ["Efficiency", sc.efficiency],
+      ["Concentration", sc.concentration], ["Investment readiness", sc.investment_readiness],
+      ["Acquisition attractiveness", sc.acquisition_attractiveness],
+    ] : [];
+
+    results.innerHTML = `
+    <div class="section-kicker">Your results</div>
+    <div class="grid grid-3">
+      <div class="card" style="border-color:rgba(47,212,138,.4)">
+        <div class="panel-title">Estimated enterprise value</div>
+        <div style="font-family:var(--font-display);font-size:26px;font-weight:700">
+          ${fmtKD(v.low)} – ${fmtKD(v.high)}</div>
+        <div class="dim" style="font-size:12.5px;margin-top:4px">confidence: ${v.confidence}</div>
+      </div>
+      <div class="card">
+        <div class="panel-title">Estimated equity value</div>
+        <div style="font-family:var(--font-display);font-size:26px;font-weight:700">
+          ${v.equity_low !== null ? `${fmtKD(v.equity_low)} – ${fmtKD(v.equity_high)}` : "—"}</div>
+        <div class="dim" style="font-size:12.5px;margin-top:4px">EV − debt + cash</div>
+      </div>
+      <div class="card">
+        <div class="panel-title">Implied value per share</div>
+        <div style="font-family:var(--font-display);font-size:26px;font-weight:700">
+          ${v.value_per_share ? "KD " + Number(v.value_per_share).toLocaleString() : "—"}</div>
+        <div class="dim" style="font-size:12.5px;margin-top:4px">
+          ${v.value_per_share ? "model estimate — not a stock price" : "add shares outstanding to enable"}</div>
+      </div>
+    </div>
+
+    <div class="split" style="margin-top:16px">
+      <div class="card">
+        <div style="display:flex;gap:24px;align-items:center;flex-wrap:wrap">
+          ${ring(sc?.total, "Business score", 96)}
+          <div style="flex:1;min-width:240px">
+            <div class="panel-title">Score components</div>
+            <div class="grid grid-3" style="gap:12px">
+              ${comp.map(([l, val]) => `
+                <div>
+                  <div class="faint" style="font-size:11px">${l}</div>
+                  <div style="display:flex;align-items:center;gap:8px">
+                    <div class="meter ${val >= 70 ? "" : val >= 45 ? "gold" : "red"}" style="flex:1">
+                      <i style="width:${val ?? 0}%"></i></div>
+                    <span class="mono" style="font-size:12px">${val ?? "—"}</span>
+                  </div>
+                </div>`).join("")}
+            </div>
+          </div>
+        </div>
+        <hr class="hr">
+        <p class="faint" style="font-size:12px">Scored against ${company.industry} benchmarks
+          ${bench ? `(median margin ${bench.median_margin}%, receivable days ${bench.median_receivable_days}, growth ${bench.median_growth}%)` : ""}.
+          Components without data stay unscored rather than guessed.</p>
+      </div>
+
+      <div>
+        <div class="card" style="background:linear-gradient(160deg,var(--panel),#1c2410)">
+          <div class="panel-title">Value gap</div>
+          <div class="kv">
+            <dt>Current estimate (mid)</dt><dd>${fmtKD((Number(v.low) + Number(v.high)) / 2)}</dd>
+            <dt>Potential estimate (mid)</dt><dd class="green">${v.potential_high ? fmtKD((Number(v.potential_low) + Number(v.potential_high)) / 2) : "—"}</dd>
+          </div>
+          <div style="font-family:var(--font-display);font-size:24px;font-weight:700;margin-top:10px"
+               class="${gapValue > 0 ? "gold" : "green"}">
+            ${gapValue > 0 ? "+ " + fmtKD(gapValue) : "At sector potential"}</div>
+          <p class="faint" style="font-size:12px;margin-top:6px">
+            What the same engine estimates if your weak drivers reached the sector median.</p>
+        </div>
+
+        <div class="card">
+          <div class="panel-title">What is holding your valuation back?</div>
+          ${(gap || []).length ? (gap || []).map((a) => {
+            const locked = a.min_plan !== "free" && plan === "free";
+            return `
+            <div style="padding:10px 0;border-bottom:1px solid var(--line)">
+              <div style="display:flex;justify-content:space-between;gap:10px;align-items:baseline">
+                <b style="font-size:14px">${locked ? "🔒 " : ""}${a.title}</b>
+                ${a.estimated_impact ? `<span class="mono gold" style="font-size:12.5px;white-space:nowrap">+${fmtKD(a.estimated_impact)}</span>` : ""}
+              </div>
+              <p class="dim" style="font-size:13px;margin-top:4px">
+                ${locked ? "Included in the Growth plan — unlock your full growth plan to see the detail." : a.explanation}</p>
+            </div>`;
+          }).join("") : `<p class="dim" style="font-size:13.5px">No weak drivers detected against your sector medians.</p>`}
+          ${plan === "free" && (gap || []).some((a) => a.min_plan !== "free")
+            ? `<a class="btn btn-primary btn-sm" style="margin-top:14px" href="/app/billing?company=${company.id}&plan=growth">Unlock my growth plan →</a>` : ""}
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:16px">
+      <div class="panel-title">Methodology</div>
+      <details class="val-letter" style="margin-top:8px">
+        <summary>📜 Read the valuation letter — how this range was reached</summary>
+        <div class="letter-body">${valuationLetter(v.method)}</div>
+      </details>
+    </div>`;
+    track("valuation_results_viewed", { company_id: company.id, confidence: v.confidence });
+  }
+
+  document.getElementById("run").onclick = async (e) => {
+    const btn = e.currentTarget, status = document.getElementById("status");
+    btn.disabled = true; status.textContent = "Saving figures & running the engine…";
+    try {
+      const n = await save();
+      track("financials_saved", { company_id: company.id, years: n });
+      await renderResults();
+      status.textContent = "Updated " + new Date().toLocaleTimeString();
+      document.getElementById("results").scrollIntoView({ behavior: "smooth" });
+    } catch (err) {
+      status.textContent = "";
+      alert(err.message || "Could not save figures.");
+    }
+    btn.disabled = false;
+  };
+
+  /* ---------- audited financials: upload + AI analysis ---------- */
+  const KIND_META = {
+    strength: { icon: "💪", label: "Strength", tone: "green" },
+    risk: { icon: "⚠️", label: "Risk", tone: "red" },
+    opportunity: { icon: "✨", label: "Opportunity", tone: "gold" },
+  };
+
+  async function renderInsights() {
+    const { data: ins } = await listAiInsights(company.id);
+    const box = document.getElementById("ai-insights");
+    if (!ins?.length) { box.innerHTML = ""; return; }
+    const order = ["opportunity", "strength", "risk"];
+    const sorted = [...ins].sort((a, b) => order.indexOf(a.kind) - order.indexOf(b.kind));
+    box.innerHTML = `
+      <div class="section-kicker">AI analysis of your financials</div>
+      <div class="grid grid-3">
+        ${sorted.map((i) => {
+          const m = KIND_META[i.kind] || KIND_META.strength;
+          return `
+          <div class="card">
+            <div style="display:flex;justify-content:space-between;gap:10px;align-items:baseline">
+              <span class="chip ${m.tone}" style="font-size:11px">${m.icon} ${m.label}</span>
+              ${i.potential_value ? `<span class="mono gold" style="font-size:12.5px">~${fmtKD(i.potential_value)}/yr</span>` : ""}
+            </div>
+            <b style="display:block;font-size:14.5px;margin-top:10px">${i.title}</b>
+            <p class="dim" style="font-size:13px;margin-top:6px">${i.body}</p>
+          </div>`;
+        }).join("")}
+      </div>
+      <p class="faint" style="font-size:12px;margin-top:10px">
+        Grounded in your uploaded statements. AI findings are decision support, not audit or advice —
+        figures extracted this way stay self-reported until Smart Money verifies them.</p>`;
+  }
+
+  async function renderDocs() {
+    const { data: docs } = await listFinancialDocuments(company.id);
+    const list = document.getElementById("doc-list");
+    if (!docs?.length) { list.innerHTML = ""; return; }
+    const tone = { analyzed: "green", analyzing: "gold", uploaded: "", failed: "red" };
+    list.innerHTML = docs.slice(0, 4).map((d) => `
+      <div style="display:flex;justify-content:space-between;gap:8px;align-items:center;padding:5px 0;border-top:1px solid var(--line)">
+        <span class="faint" style="font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">📄 ${d.filename}</span>
+        <span style="display:flex;gap:6px;align-items:center;flex-shrink:0">
+          <span class="chip ${tone[d.status] ?? ""}" style="font-size:10.5px">${d.status}</span>
+          <button class="btn btn-ghost btn-sm" data-del="${d.id}" title="Delete this document"
+                  style="padding:2px 8px;font-size:11px">🗑 Delete</button>
+        </span>
+      </div>`).join("");
+    list.querySelectorAll("[data-del]").forEach((b) => b.onclick = async () => {
+      const d = docs.find((x) => x.id === b.dataset.del);
+      if (!confirm(`Delete "${d.filename}" and its AI findings? This cannot be undone.`)) return;
+      b.disabled = true;
+      const { error } = await deleteFinancialDocument(d);
+      if (error) { alert("Could not delete: " + error.message); b.disabled = false; return; }
+      track("financials_doc_deleted", { company_id: company.id });
+      await Promise.all([renderDocs(), renderInsights()]);
+    });
+  }
+
+  async function refreshFigures() {
+    const { data: fresh } = await getFinancials(company.id);
+    const freshByYear = Object.fromEntries((fresh || []).map((f) => [f.fiscal_year, f]));
+    document.querySelectorAll("input[data-f]").forEach((el) => {
+      const v = freshByYear[el.dataset.y]?.[el.dataset.f];
+      if (v !== undefined && v !== null) el.value = v;
+    });
+  }
+
+  /* dropzone: browse via the wrapped input; drag & drop sets the same input */
+  const dz = document.getElementById("dropzone");
+  const fileInput = document.getElementById("doc-file");
+  const showChosen = () => {
+    const f = fileInput.files[0];
+    if (f) document.getElementById("drop-label").innerHTML =
+      `📄 <b>${f.name.replace(/</g, "&lt;")}</b> <span class="faint">(${(f.size / 1048576).toFixed(1)} MB)</span> — ready`;
+  };
+  fileInput.addEventListener("change", showChosen);
+  ["dragover", "dragenter"].forEach((ev) =>
+    dz.addEventListener(ev, (e) => { e.preventDefault(); dz.classList.add("drag"); }));
+  ["dragleave", "drop"].forEach((ev) =>
+    dz.addEventListener(ev, (e) => { e.preventDefault(); dz.classList.remove("drag"); }));
+  dz.addEventListener("drop", (e) => {
+    if (e.dataTransfer?.files?.length) { fileInput.files = e.dataTransfer.files; showChosen(); }
+  });
+
+  document.getElementById("doc-analyze").onclick = async (e) => {
+    const btn = e.currentTarget, ds = document.getElementById("doc-status");
+    const file = document.getElementById("doc-file").files[0];
+    if (!file) { ds.textContent = "Choose or drop a PDF first."; return; }
+    if (file.type !== "application/pdf") { ds.textContent = "Only PDF statements are supported."; return; }
+    if (file.size > 32 * 1024 * 1024) { ds.textContent = "File is over the 32 MB limit."; return; }
+    btn.disabled = true;
+
+    ds.textContent = "Uploading…";
+    const { data: doc, error: upErr } = await uploadFinancialDocument(company.id, file);
+    if (upErr || !doc) { ds.textContent = "Upload failed: " + (upErr?.message ?? ""); btn.disabled = false; return; }
+    track("financials_doc_uploaded", { company_id: company.id });
+    await renderDocs();
+
+    ds.textContent = "AI is reading your statements — this can take a minute…";
+    const { data: out, error: aErr } = await analyzeFinancialDocument(doc.id);
+    if (aErr || out?.error) {
+      // FunctionsHttpError carries the function's JSON body on .context (a Response)
+      let msg = out?.error ?? null;
+      if (!msg && aErr?.context && typeof aErr.context.json === "function") {
+        try { msg = (await aErr.context.json())?.error ?? null; } catch { /* keep fallback */ }
+      }
+      ds.innerHTML = `<span class="red">${typeof msg === "string" && msg ? msg : (aErr?.message ?? "analysis failed")}</span>`;
+      await renderDocs();
+      btn.disabled = false;
+      return;
+    }
+    track("financials_doc_analyzed", { company_id: company.id, years: out.years_extracted });
+    ds.innerHTML = `<span class="green">✓ Analyzed ${out.years_extracted} year${out.years_extracted === 1 ? "" : "s"}
+        and valued your business.</span><br>
+      <a class="btn btn-primary" style="margin-top:12px" href="/app/company?id=${company.id}">
+        View my company profile →</a>`;
+    await Promise.all([refreshFigures(), renderDocs(), renderResults(), renderInsights()]);
+    btn.disabled = false;
+  };
+
+  // show existing results straight away if the engine has already run
+  await renderResults();
+  await Promise.all([renderDocs(), renderInsights()]);
+}
+</script>
+</body>
+</html>

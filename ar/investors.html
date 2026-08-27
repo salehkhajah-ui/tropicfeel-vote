@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>منصة المستثمر — سمارت موني</title>
+<meta name="description" content="الجانب الرأسمالي من سمارت موني: صفقات مفلترة من شركات خاصة تبحث عن تمويل، مقيَّمة وفق تفويض صندوقك مع الإفصاح الكامل عن المنهجية.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/style.css">
+<link rel="alternate" hreflang="en" href="/investors">
+<link rel="alternate" hreflang="ar" href="/ar/investors">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%232fd48a'/><text x='50' y='70' font-size='60' text-anchor='middle' font-family='monospace' font-weight='bold' fill='%2305261a'>S</text></svg>">
+</head>
+<body data-page="investors">
+
+<main class="wrap">
+  <div class="page-head" style="display:flex;justify-content:space-between;align-items:flex-end;gap:20px;flex-wrap:wrap">
+    <div>
+      <div class="panel-title" style="margin-bottom:8px">مسجَّل الدخول كمستثمر تجريبي</div>
+      <h1 style="display:flex;align-items:center;gap:14px" id="inv-name"></h1>
+      <p id="inv-sub"></p>
+    </div>
+    <a class="btn btn-primary" href="/app/invest">افتح المنصة الفعلية ←</a>
+  </div>
+
+  <div class="grid grid-4" style="margin-bottom:26px">
+    <div class="stat"><div class="label">الصفقات المتاحة</div><div class="value" id="s-deals">—</div><div class="sub">شركات تبحث عن تمويل</div></div>
+    <div class="stat"><div class="label">ضمن التفويض</div><div class="value green" id="s-mandate">—</div><div class="sub">حجم الشيك ضمن النطاق</div></div>
+    <div class="stat"><div class="label">المحفظة المفلترة</div><div class="value gold" id="s-pipeline">—</div><div class="sub">استرشادي، ضمن التفويض فقط</div></div>
+    <div class="stat"><div class="label">وسيط توافق التفويض</div><div class="value blue" id="s-fit">—</div><div class="sub">عبر الصفقات المتاحة</div></div>
+  </div>
+
+  <div class="filters">
+    <select id="f-sector"><option value="">كل القطاعات</option></select>
+    <select id="f-type"><option value="">كل أنواع الصفقات</option></select>
+    <select id="f-sort">
+      <option value="fit">الترتيب: توافق التفويض</option>
+      <option value="ticket">الترتيب: حجم الشيك</option>
+      <option value="growth">الترتيب: نمو الإيرادات</option>
+    </select>
+    <label class="toggle"><input type="checkbox" id="f-mandate"> ضمن التفويض فقط</label>
+    <span class="faint" style="font-size:13px;margin-inline-start:auto" id="count"></span>
+  </div>
+
+  <div class="split">
+    <div id="feed"></div>
+
+    <div>
+      <div class="card">
+        <div class="panel-title">تفويض الاستثمار</div>
+        <div class="kv" id="mandate-kv"></div>
+        <hr class="hr">
+        <div class="panel-title" style="margin-bottom:8px">القطاعات المستهدفة</div>
+        <div class="tag-row" id="mandate-sectors"></div>
+      </div>
+
+      <div class="card">
+        <div class="panel-title">قائمة المتابعة <span id="watch-n" class="faint"></span></div>
+        <div id="watchlist"></div>
+      </div>
+
+      <div class="card">
+        <div class="panel-title">رأس المال المستثمر حسب القطاع</div>
+        <div id="exposure"></div>
+        <hr class="hr">
+        <p class="faint" style="font-size:12px">
+          يُميَّز أي تركّز يتجاوز 25% من رأس المال المستثمر على الصفقات المطابقة له.
+        </p>
+      </div>
+
+      <div class="card" style="background:linear-gradient(160deg,var(--panel),#181432)">
+        <div class="panel-title">المرحلة 3 · وصول موثّق</div>
+        <p class="dim" style="font-size:13.5px">
+          طلب الوصول يفتح غرفة بيانات محمية باتفاقية سرية تتضمن البيانات المالية الموثّقة للشركة.
+          سمارت موني لا تتوسط في الأوراق المالية: أي صفقة تنتج عن ذلك تُنفَّذ بينك وبين الشركة،
+          وعبر مستشارين مرخّصين حيثما يقتضي القانون ذلك.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <p class="faint" style="margin-top:34px;font-size:13px">
+    بيئة تجريبية: أنت تستعرض المنصة بصفتك بيت المال كابيتال، وهي جهة افتراضية.
+    كل شركة ورقم وحجم شيك ودرجة توافق معروضة هنا هي بيانات توضيحية —
+    وليست عرضًا ولا دعوة ولا توصية بالاستثمار.
+  </p>
+</main>
+
+<script src="/assets/data.js"></script>
+<script src="/assets/data-ar.js"></script>
+<script src="/assets/common.js"></script>
+<script>
+  const inv = SM.investor;
+  const exposure = SM.sectorExposure();
+  const watched = new Set();
+
+  const tone = (s) => (s >= 75 ? "green" : s >= 55 ? "gold" : "red");
+  // SM.fitScore returns its component labels in English — it is the shared scoring code.
+  const partAr = { Sector: "القطاع", Stage: "المرحلة", Quality: "الجودة", Risk: "المخاطر", Data: "البيانات" };
+
+  const deals = SM.raises.map(r => {
+    const c = SM.byId(r.id);
+    const ticket = SM.dealTicket(c, r);
+    const conc = exposure.find(e => e.sector === c.industry && e.pct >= 25);
+    return { r, c, ticket, ok: SM.inMandate(ticket), fit: SM.fitScore(c), conc };
+  });
+
+  /* ---------- header + stats ---------- */
+  document.getElementById("inv-name").innerHTML =
+    `<span class="logo-tile" style="width:46px;height:46px;font-size:18px;border-radius:12px;background:${inv.color}">${inv.short}</span> ${inv.name}`;
+  document.getElementById("inv-sub").textContent =
+    `${inv.type} · ${inv.based} · ${SM.fmtKD(inv.aum)} تحت الإدارة. `
+    + `فلترت الشبكة الليلة الماضية كل شركة نشرت إشارة تمويل وفق تفويضك.`;
+
+  const okDeals = deals.filter(d => d.ok);
+  const fits = deals.map(d => d.fit.total).sort((a, b) => a - b);
+  document.getElementById("s-deals").textContent = deals.length;
+  document.getElementById("s-mandate").textContent = okDeals.length;
+  document.getElementById("s-pipeline").textContent = SM.fmtKD(okDeals.reduce((n, d) => n + d.ticket, 0));
+  document.getElementById("s-fit").textContent = fits[Math.floor(fits.length / 2)];
+
+  /* ---------- filters ---------- */
+  const fSector = document.getElementById("f-sector");
+  const fType = document.getElementById("f-type");
+  const fSort = document.getElementById("f-sort");
+  const fMandate = document.getElementById("f-mandate");
+
+  [...new Set(deals.map(d => d.c.industry))].sort().forEach(s => {
+    const o = document.createElement("option"); o.textContent = s; fSector.append(o);
+  });
+  [...new Set(deals.map(d => d.r.type))].sort().forEach(t => {
+    const o = document.createElement("option"); o.textContent = t; fType.append(o);
+  });
+
+  /* ---------- deal cards ---------- */
+  function dealCard(d) {
+    const { c, r, fit, ticket, ok, conc } = d;
+    const verified = c.financials.verified.length;
+    return `
+    <div class="card deal" data-id="${c.id}">
+      <div class="deal-head">
+        <span class="logo-tile" style="background:${c.color}">${c.short}</span>
+        <div style="min-width:0">
+          <div class="deal-name"><a href="/ar/company?id=${c.id}">${c.name}</a></div>
+          <div class="faint" style="font-size:12.5px">${c.industry} · ${c.location} · ${c.stage}</div>
+          <div class="tag-row" style="margin-top:8px">
+            <span class="chip violet">${r.type}</span>
+            <span class="chip">${r.stake === 100 ? "100%" : r.stake + "%"} معروضة</span>
+            ${ok ? '<span class="chip green">ضمن التفويض</span>'
+                 : '<span class="chip red">الشيك خارج النطاق</span>'}
+            ${conc ? `<span class="chip gold">يزيد تركّز ${conc.sector} البالغ ${conc.pct}%</span>` : ""}
+          </div>
+        </div>
+        <div class="fit">
+          <div class="n ${tone(fit.total)}">${fit.total}</div>
+          <div class="l">توافق التفويض</div>
+        </div>
+      </div>
+
+      <p class="dim" style="font-size:13.5px;margin-top:14px">${r.use}</p>
+
+      <div class="deal-kv">
+        <div><span class="l">شيك استرشادي</span><span class="v ${ok ? "green" : "red"}">${SM.fmtKD(ticket)}</span></div>
+        <div><span class="l">التقييم الآلي</span><span class="v">${SM.fmtRange(c.valuation.low, c.valuation.high)}</span></div>
+        <div><span class="l">الإيرادات</span><span class="v">${SM.fmtKD(c.financials.revenue)}</span></div>
+        <div><span class="l">هامش EBITDA</span><span class="v">${c.financials.margin}%</span></div>
+        <div><span class="l">النمو</span><span class="v ${c.financials.growth >= 10 ? "green" : "dim"}">+${c.financials.growth}%</span></div>
+        <div><span class="l">البيانات المالية</span><span class="v">${
+          verified ? `<span class="badge-verified">${verified} موثّقة</span>` : '<span class="badge-self">ذاتية</span>'
+        }</span></div>
+      </div>
+
+      <div class="fit-parts">
+        ${fit.parts.map(p => `
+          <div>
+            ${partAr[p.label] || p.label} <span class="mono dim">${p.v}/${p.max}</span>
+            <div class="meter ${tone(Math.round((p.v / p.max) * 100))}"><i style="width:${(p.v / p.max) * 100}%"></i></div>
+          </div>`).join("")}
+      </div>
+
+      <div class="actions">
+        <button class="btn btn-primary btn-sm" data-act="access">طلب وصول موثّق</button>
+        <button class="btn btn-ghost btn-sm" data-act="watch">${watched.has(c.id) ? "✓ في قائمة المتابعة" : "أضف للمتابعة"}</button>
+        <button class="btn btn-ghost btn-sm" data-act="pass">تجاهل</button>
+        <span class="faint" style="font-size:12px;align-self:center">الثقة: ${c.valuation.confidenceAr || c.valuation.confidence}</span>
+      </div>
+    </div>`;
+  }
+
+  function render() {
+    const sector = fSector.value, type = fType.value, sort = fSort.value;
+    const list = deals
+      .filter(d => !sector || d.c.industry === sector)
+      .filter(d => !type || d.r.type === type)
+      .filter(d => !fMandate.checked || d.ok)
+      .sort((a, b) =>
+        sort === "ticket" ? b.ticket - a.ticket
+        : sort === "growth" ? b.c.financials.growth - a.c.financials.growth
+        : b.fit.total - a.fit.total);
+
+    document.getElementById("feed").innerHTML = list.length
+      ? list.map(dealCard).join("")
+      : `<div class="card"><p class="dim" style="text-align:center;padding:22px">لا توجد صفقات مطابقة لهذه الفلترة.</p></div>`;
+    document.getElementById("count").textContent = `${list.length} من ${deals.length} صفقة`;
+  }
+
+  /* ---------- watchlist rail ---------- */
+  function renderWatchlist() {
+    const el = document.getElementById("watchlist");
+    document.getElementById("watch-n").textContent = watched.size ? `(${watched.size})` : "";
+    if (!watched.size) {
+      el.innerHTML = `<p class="faint" style="font-size:13px">لا شيء قيد المتابعة بعد. أضف صفقة لمراقبة إشاراتها وتغيّر تقييمها وحالة توثيق بياناتها.</p>`;
+      return;
+    }
+    el.innerHTML = [...watched].map(id => {
+      const d = deals.find(x => x.c.id === id);
+      return `
+      <div class="watch-item">
+        <span class="logo-tile" style="width:26px;height:26px;border-radius:7px;font-size:10px;background:${d.c.color}">${d.c.short}</span>
+        <a href="/ar/company?id=${id}" style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${d.c.name}</a>
+        <span class="mono ${tone(d.fit.total)}" style="font-size:12.5px">${d.fit.total}</span>
+      </div>`;
+    }).join("");
+  }
+
+  /* ---------- interactions (delegated, survives re-render) ---------- */
+  document.getElementById("feed").addEventListener("click", (e) => {
+    const btn = e.target.closest("button[data-act]");
+    if (!btn) return;
+    const card = btn.closest(".deal");
+    const id = card.dataset.id;
+
+    if (btn.dataset.act === "access") {
+      btn.textContent = "✓ أُرسل الطلب واتفاقية السرية";
+      btn.disabled = true;
+    } else if (btn.dataset.act === "watch") {
+      if (watched.has(id)) { watched.delete(id); btn.textContent = "أضف للمتابعة"; }
+      else { watched.add(id); btn.textContent = "✓ في قائمة المتابعة"; }
+      renderWatchlist();
+    } else {
+      card.style.opacity = ".35";
+      btn.textContent = "تم التجاهل";
+      btn.disabled = true;
+    }
+  });
+
+  /* ---------- rail: mandate + exposure ---------- */
+  document.getElementById("mandate-kv").innerHTML = `
+    <dt>حجم الشيك</dt><dd>${SM.fmtRange(inv.mandate.ticketMin, inv.mandate.ticketMax)}</dd>
+    <dt>المرحلة</dt><dd>${inv.mandate.stages.join("، ")}</dd>
+    <dt>مدة الاحتفاظ</dt><dd>${inv.mandate.hold}</dd>
+    <dt>المستثمر فعليًا</dt><dd>${SM.fmtKD(inv.portfolio.reduce((n, h) => n + h.invested, 0))}</dd>`;
+
+  document.getElementById("mandate-sectors").innerHTML =
+    inv.mandate.sectors.map(s => `<span class="chip green">${s}</span>`).join("")
+    + inv.mandate.adjacent.map(s => `<span class="chip">${s}</span>`).join("");
+
+  document.getElementById("exposure").innerHTML = exposure.map(e => `
+    <div style="margin-bottom:12px">
+      <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:5px">
+        <span class="dim">${e.sector}</span>
+        <span class="mono ${e.pct >= 25 ? "gold" : "dim"}">${e.pct}%</span>
+      </div>
+      <div class="meter ${e.pct >= 25 ? "gold" : "blue"}"><i style="width:${e.pct}%"></i></div>
+    </div>`).join("");
+
+  fSector.onchange = fType.onchange = fSort.onchange = fMandate.onchange = render;
+  render();
+  renderWatchlist();
+</script>
+</body>
+</html>

@@ -1,44 +1,41 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Economic Graph — Smart Money</title>
+<title>الشبكة الاقتصادية — سمارت موني</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/assets/style.css">
+<link rel="alternate" hreflang="en" href="/graph">
+<link rel="alternate" hreflang="ar" href="/ar/graph">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%232fd48a'/><text x='50' y='70' font-size='60' text-anchor='middle' font-family='monospace' font-weight='bold' fill='%2305261a'>S</text></svg>">
 </head>
 <body data-page="graph">
 
 <main class="wrap">
   <div class="page-head">
-    <h1>The Economic Graph</h1>
-    <p>A living map of commerce. Nodes are companies (sized by revenue); lines are how value flows between them —
-      trade relationships, competition, and <span class="green">deals the AI has manufactured</span>. Click any company. Drag to rearrange.</p>
-  </div>
-
-  <div class="graph-toolbar">
-    <label class="dim" style="font-size:14px" for="focus-select">Jump to a company:</label>
-    <select id="focus-select"><option value="">— pick one —</option></select>
+    <h1>الشبكة الاقتصادية</h1>
+    <p>خريطة حيّة للتجارة. العُقد شركات (يتناسب حجمها مع الإيرادات)، والخطوط هي كيفية تدفق القيمة بينها —
+      علاقات تجارية، ومنافسة، و<span class="green">صفقات صنعها الذكاء الاصطناعي</span>. اضغط على أي شركة. اسحب لإعادة الترتيب.</p>
   </div>
 
   <div id="graph-shell">
     <canvas id="graph-canvas"></canvas>
-    <div id="graph-hint">👆 Click a company · drag to rearrange</div>
     <div id="graph-panel"></div>
   </div>
 
   <div class="legend">
-    <span><i style="background:var(--blue)"></i>Trade (supplier / customer)</span>
-    <span><i style="background:var(--red)"></i>Competition</span>
-    <span><i style="background:var(--green)"></i>AI-manufactured match</span>
-    <span class="faint">· Node size = revenue · All demo data</span>
+    <span><i style="background:var(--blue)"></i>تجارة (مورّد / عميل)</span>
+    <span><i style="background:var(--red)"></i>منافسة</span>
+    <span><i style="background:var(--green)"></i>مطابقة صنعها الذكاء الاصطناعي</span>
+    <span class="faint">· حجم العقدة = الإيرادات · جميع البيانات تجريبية</span>
   </div>
 </main>
 
 <script src="/assets/data.js"></script>
+<script src="/assets/data-ar.js"></script>
 <script src="/assets/common.js"></script>
 <script>
 (function () {
@@ -154,8 +151,9 @@
       ctx.fillText(n.c.short, n.x, n.y + 1);
       // label
       ctx.fillStyle = dim ? "rgba(154,168,199,.4)" : "#9aa8c7";
-      ctx.font = "500 11px Inter, sans-serif";
-      ctx.fillText(n.c.name, n.x, n.y + n.r + 14);
+      ctx.font = "500 12px 'IBM Plex Sans Arabic', Inter, sans-serif";
+      ctx.direction = "rtl";
+      ctx.fillText(n.c.name, n.x, n.y + n.r + 15);
       ctx.globalAlpha = 1;
     });
   }
@@ -180,39 +178,23 @@
         <span class="logo-tile" style="width:36px;height:36px;font-size:13px;border-radius:9px;background:${c.color}">${c.short}</span>
         <div>
           <div style="font-weight:700;font-family:var(--font-display)">${c.name}</div>
-          <div class="faint" style="font-size:12px">${c.industry} · ${c.location.split(",")[0]}</div>
+          <div class="faint" style="font-size:12px">${c.industry} · ${c.location.split("،")[0]}</div>
         </div>
       </div>
       <div class="kv" style="font-size:13px">
-        <dt>Revenue</dt><dd>${SM.fmtKD(c.financials.revenue)}</dd>
-        <dt>AI valuation</dt><dd>${SM.fmtKD(c.valuation.low)}–${SM.fmtKD(c.valuation.high)}</dd>
-        <dt>Connections</dt><dd>${conn.length}</dd>
-        <dt>Opportunity</dt><dd class="green">${c.scores.opportunity}/100</dd>
+        <dt>الإيرادات</dt><dd>${SM.fmtKD(c.financials.revenue)}</dd>
+        <dt>التقييم الذكي</dt><dd>${SM.fmtRange(c.valuation.low, c.valuation.high)}</dd>
+        <dt>الروابط</dt><dd>${conn.length}</dd>
+        <dt>درجة الفرص</dt><dd class="green">${c.scores.opportunity}/100</dd>
       </div>
       <div class="tag-row" style="margin-top:10px">${c.signals.map(s => `<span class="chip green" style="font-size:11px">${s}</span>`).join("")}</div>
-      <a class="btn btn-primary btn-sm" style="margin-top:14px;width:100%;justify-content:center" href="/company?id=${c.id}">Open economic profile →</a>`;
+      <a class="btn btn-primary btn-sm" style="margin-top:14px;width:100%;justify-content:center" href="/ar/company?id=${c.id}">افتح الملف الاقتصادي ←</a>`;
     panel.classList.add("open");
   }
   if (selected) showPanel(selected);
 
-  /* company picker */
-  const focusSel = document.getElementById("focus-select");
-  SM.companies.forEach(c => {
-    const o = document.createElement("option");
-    o.value = c.id; o.textContent = c.name;
-    focusSel.append(o);
-  });
-  if (selected) focusSel.value = selected.c.id;
-  focusSel.onchange = () => {
-    const n = byId(focusSel.value);
-    if (n) { selected = n; showPanel(n); }
-    else { selected = null; panel.classList.remove("open"); }
-  };
-
-  const hint = document.getElementById("graph-hint");
   let moved = false, grab = { dx: 0, dy: 0 }, hist = [];
   canvas.addEventListener("pointerdown", ev => {
-    hint.classList.add("hide");
     const p = pos(ev); const n = nodeAt(p.x, p.y);
     moved = false;
     if (n) {

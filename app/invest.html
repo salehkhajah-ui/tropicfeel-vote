@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Invest — Smart Money</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/style.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%232fd48a'/><text x='50' y='70' font-size='60' text-anchor='middle' font-family='monospace' font-weight='bold' fill='%2305261a'>S</text></svg>">
+<style>
+  .field { display: block; margin-bottom: 14px; }
+  .field input, .field select { width: 100%; }
+</style>
+</head>
+<body data-page="app">
+
+<main class="wrap" id="main"><p class="dim" style="padding:60px 0">Loading…</p></main>
+
+<script src="/assets/common.js"></script>
+<script type="module">
+import { supabase, requireSession, fmtKD, getInvestorProfile, upsertInvestorProfile,
+         getMandate, upsertMandate, getMyKyc, listDealFlow, mandateFit,
+         listWatchlist, watchCompany, unwatchCompany, myAccessRequests, requestAccess,
+         getPlatformFees, track } from "/assets/supabase.js";
+
+const session = await requireSession();
+if (session) {
+  const main = document.getElementById("main");
+  const params = new URLSearchParams(location.search);
+  const [{ data: profile }, { data: mandate }] = await Promise.all([getInvestorProfile(), getMandate()]);
+  const hasSetup = !!(profile && mandate);
+  track("invest_viewed", {});
+
+  /* ---------- optional setup: profile + mandate in one pass ---------- */
+  if (!hasSetup && params.get("setup") === "1") {
+    const { data: dir } = await supabase.from("company_directory").select("industry");
+    const industries = [...new Set((dir || []).map((d) => d.industry))].sort();
+    main.innerHTML = `
+    <p style="margin:26px 0 0"><a class="dim" href="/app/invest">← Just browse instead</a></p>
+    <div class="page-head" style="max-width:720px;padding-top:16px">
+      <h1>Set up your investor mandate</h1>
+      <p>Your mandate stays private — it is used only to screen deal flow for you and score each
+         business against what you actually invest in. Access to company data rooms additionally
+         requires identity verification by Smart Money.</p>
+    </div>
+    <div class="card" style="max-width:720px">
+      <div class="panel-title">Who is investing</div>
+      <label class="field"><div class="panel-title" style="margin-bottom:6px">Name / firm *</div>
+        <input id="i-name" value="${profile?.display_name || session.user.user_metadata?.full_name || ""}"></label>
+      <div class="grid grid-2">
+        <label class="field"><div class="panel-title" style="margin-bottom:6px">Type</div>
+          <select id="i-type">
+            ${["individual","family_office","private_equity","strategic","bank","other"]
+              .map((t) => `<option value="${t}" ${profile?.firm_type === t ? "selected" : ""}>${t.replace("_"," ")}</option>`).join("")}
+          </select></label>
+        <label class="field"><div class="panel-title" style="margin-bottom:6px">Based in</div>
+          <input id="i-based" value="${profile?.based || ""}" placeholder="Kuwait City, Kuwait"></label>
+      </div>
+      <hr class="hr">
+      <div class="panel-title">Mandate</div>
+      <div class="grid grid-2">
+        <label class="field"><div class="panel-title" style="margin-bottom:6px">Cheque min (KD) *</div>
+          <input id="m-min" type="number" min="0" step="1000" value="${mandate?.ticket_min ?? 100000}"></label>
+        <label class="field"><div class="panel-title" style="margin-bottom:6px">Cheque max (KD) *</div>
+          <input id="m-max" type="number" min="1" step="1000" value="${mandate?.ticket_max ?? 2000000}"></label>
+      </div>
+      <div class="panel-title" style="margin-bottom:6px">Target sectors</div>
+      <div class="tag-row" id="m-sectors" style="margin-bottom:14px">
+        ${industries.map((i) => `<button type="button" class="chip ${mandate?.sectors?.includes(i) ? "green" : ""}" data-s="${i}">${i}</button>`).join("")}
+      </div>
+      <div class="panel-title" style="margin-bottom:6px">Stages</div>
+      <div class="tag-row" id="m-stages" style="margin-bottom:14px">
+        ${["Startup","Growth","Established","Mature"].map((s) =>
+          `<button type="button" class="chip ${mandate?.stages?.includes(s) ? "green" : ""}" data-s="${s}">${s}</button>`).join("")}
+      </div>
+      <button class="btn btn-primary" id="save">Open the terminal →</button>
+      <span class="faint" id="err" style="font-size:13px;margin-left:10px"></span>
+    </div>`;
+
+    const picked = (sel) => [...document.querySelectorAll(sel + " .chip.green")].map((b) => b.dataset.s);
+    document.querySelectorAll("#m-sectors, #m-stages").forEach((grid) =>
+      grid.addEventListener("click", (e) => {
+        const b = e.target.closest("[data-s]");
+        if (b) b.classList.toggle("green");
+      }));
+    document.getElementById("save").onclick = async () => {
+      const err = document.getElementById("err");
+      const name = document.getElementById("i-name").value.trim();
+      const min = Number(document.getElementById("m-min").value);
+      const max = Number(document.getElementById("m-max").value);
+      if (name.length < 2) return (err.textContent = "Name is required.");
+      if (!(max > min)) return (err.textContent = "Cheque max must exceed min.");
+      const { error: e1 } = await upsertInvestorProfile({
+        display_name: name,
+        firm_type: document.getElementById("i-type").value,
+        based: document.getElementById("i-based").value.trim() || null,
+      });
+      if (e1) return (err.textContent = e1.message);
+      const { error: e2 } = await upsertMandate({
+        ticket_min: min, ticket_max: max,
+        sectors: picked("#m-sectors"), stages: picked("#m-stages"),
+      });
+      if (e2) return (err.textContent = e2.message);
+      track("investor_onboarded", {});
+      location.href = "/app/invest";
+    };
+  } else {
+    /* ---------- the terminal — open to everyone signed in ---------- */
+    const [{ data: kyc }, { data: flow }, { data: watch }, { data: reqs }, fees] = await Promise.all([
+      hasSetup ? getMyKyc() : Promise.resolve({ data: null }),
+      listDealFlow(),
+      hasSetup ? listWatchlist() : Promise.resolve({ data: [] }),
+      hasSetup ? myAccessRequests() : Promise.resolve({ data: [] }),
+      getPlatformFees(),
+    ]);
+    const proposalFee = fees.proposal_fee?.amount_kd ?? 10;
+    const watched = new Set((watch || []).map((w) => w.company_id));
+    const reqByCompany = Object.fromEntries((reqs || []).map((r) => [r.company_id, r]));
+    const verified = !!kyc?.investor_verified_at;
+
+    const deals = (flow || [])
+      .map((e) => ({ ...e, fit: hasSetup ? mandateFit(e, mandate) : null }))
+      .sort((a, b) => hasSetup ? b.fit.total - a.fit.total
+                               : (b.scores?.total ?? 0) - (a.scores?.total ?? 0));
+    const tone = (s) => (s >= 75 ? "green" : s >= 55 ? "gold" : "red");
+    const inBand = (e) => {
+      if (!hasSetup) return null;
+      const mid = e.valuation ? (Number(e.valuation.low) + Number(e.valuation.high)) / 2 : null;
+      if (mid === null) return null;
+      const stake = e.signals.some((s) => ["selling_stake", "seeking_capital", "open_to_investors"].includes(s.type)) ? 0.25 : 1;
+      const ticket = Math.round(mid * stake);
+      return { ticket, ok: ticket >= Number(mandate.ticket_min) && ticket <= Number(mandate.ticket_max) };
+    };
+
+    const card = (e) => {
+      const band = inBand(e);
+      const req = reqByCompany[e.company.id];
+      return `
+      <div class="card deal" data-id="${e.company.id}">
+        <div class="deal-head">
+          <span class="logo-tile" style="background:${e.company.brand_color || "#2fd48a"}">
+            ${(e.company.short_code || e.company.name.slice(0, 2)).toUpperCase()}</span>
+          <div style="min-width:0">
+            <div class="deal-name">${e.company.name}</div>
+            <div class="faint" style="font-size:12.5px">${e.company.industry} · ${e.company.city || e.company.country || ""}</div>
+            <div class="tag-row" style="margin-top:8px">
+              ${e.signals.map((s) => `<span class="chip violet">${s.title || s.type}</span>`).join("")}
+              ${band ? (band.ok ? '<span class="chip green">In mandate</span>' : '<span class="chip red">Cheque outside band</span>') : ""}
+            </div>
+          </div>
+          ${e.fit ? `<div class="fit"><div class="n ${tone(e.fit.total)}">${e.fit.total}</div><div class="l">Mandate fit</div></div>`
+                  : `<div class="fit"><div class="n ${tone(e.scores?.total ?? 0)}">${e.scores?.total ?? "—"}</div><div class="l">Business score</div></div>`}
+        </div>
+        <div class="deal-kv">
+          <div><span class="l">AI valuation</span><span class="v">${e.valuation ? `${fmtKD(e.valuation.low)} – ${fmtKD(e.valuation.high)}` : "—"}</span></div>
+          ${hasSetup ? `<div><span class="l">Indicative cheque</span><span class="v ${band?.ok ? "green" : band ? "red" : ""}">${band ? fmtKD(band.ticket) : "—"}</span></div>` : ""}
+          <div><span class="l">Business score</span><span class="v">${e.scores?.total ?? "—"}</span></div>
+        </div>
+        ${e.fit ? `<div class="fit-parts">
+          ${e.fit.parts.map((p) => `
+            <div>${p.label} <span class="mono dim">${p.v}/${p.max}</span>
+              <div class="meter ${tone(Math.round((p.v / p.max) * 100))}"><i style="width:${(p.v / p.max) * 100}%"></i></div>
+            </div>`).join("")}
+        </div>` : ""}
+        <div class="actions">
+          <a class="btn btn-primary btn-sm" href="/app/proposal?to=${e.company.id}">
+            📨 Send a proposal — ${fmtKD(proposalFee)}</a>
+          ${hasSetup
+            ? (req
+              ? `<span class="chip ${req.status === "approved" ? "green" : req.status === "rejected" ? "red" : "gold"}">
+                   Access ${req.status}</span>`
+              : verified
+                ? `<button class="btn btn-ghost btn-sm" data-act="access">Request verified access</button>`
+                : `<span class="chip gold">🔒 Verification required for data-room access</span>`)
+            : ""}
+          ${hasSetup
+            ? `<button class="btn btn-ghost btn-sm" data-act="watch">${watched.has(e.company.id) ? "✓ On watchlist" : "Add to watchlist"}</button>`
+            : ""}
+        </div>
+      </div>`;
+    };
+
+    main.innerHTML = `
+    <div class="page-head" style="display:flex;justify-content:space-between;align-items:flex-end;gap:20px;flex-wrap:wrap">
+      <div>
+        <div class="panel-title" style="margin-bottom:8px">Investor terminal</div>
+        <h1>${hasSetup ? profile.display_name : "Find a business to invest in"}</h1>
+        ${hasSetup ? `
+        <p>${profile.firm_type.replace("_", " ")}${profile.based ? " · " + profile.based : ""} ·
+           cheque ${fmtKD(mandate.ticket_min)} – ${fmtKD(mandate.ticket_max)}
+           <a class="blue" href="#" id="edit-mandate">edit mandate</a></p>` : `
+        <p>Real businesses on Smart Money that are open to investors right now — with AI valuations
+           and Business Scores computed from their actual figures. See one you believe in?
+           Send its owners a proposal.</p>`}
+      </div>
+      ${hasSetup ? `
+      <div class="stat" style="min-width:200px">
+        <div class="label">Verification</div>
+        <div class="value ${verified ? "green" : "gold"}" style="font-size:18px">
+          ${verified ? "✓ Verified investor" : "Pending"}</div>
+        <div class="sub">${verified ? "data-room requests enabled" : "Smart Money verifies identity before any data-room access"}</div>
+      </div>` : `
+      <a class="btn btn-ghost" href="/app/invest?setup=1">🎯 Set up a mandate — free</a>`}
+    </div>
+
+    ${hasSetup ? `
+    <div class="grid grid-3" style="margin-bottom:22px">
+      <div class="stat"><div class="label">Live deal flow</div><div class="value">${deals.length}</div>
+        <div class="sub">published companies with capital signals</div></div>
+      <div class="stat"><div class="label">Within mandate</div>
+        <div class="value green">${deals.filter((d) => inBand(d)?.ok).length}</div>
+        <div class="sub">indicative cheque clears your band</div></div>
+      <div class="stat"><div class="label">Watchlist</div><div class="value blue">${watched.size}</div>
+        <div class="sub">${(reqs || []).length} access request${(reqs || []).length === 1 ? "" : "s"} made</div></div>
+    </div>` : `
+    <div class="disclaimer" style="margin-bottom:22px">
+      <b>Browsing as a guest investor.</b> Anyone can browse and send proposals. A free private
+      mandate adds per-deal fit scoring, cheque-band checks, a watchlist, and — after identity
+      verification — NDA-gated data-room access. <a class="blue" href="/app/invest?setup=1">Set it up →</a></div>`}
+
+    <div id="feed">${deals.map(card).join("")
+      || `<div class="card"><p class="dim">No companies are currently publishing capital signals.</p></div>`}</div>
+
+    <p class="faint" style="margin-top:30px;font-size:12.5px;max-width:760px">
+      ${hasSetup ? `Mandate fit is a disclosed five-component screen (sector 30 · stage 20 · quality 25 · risk 15 ·
+      data 10) over each company's engine outputs. Indicative cheques assume a minority stake on
+      capital signals.` : ""} Valuations and scores are AI model outputs for decision support — not
+      certified appraisals or investment advice. Nothing here is an offer or solicitation; access to
+      confidential information happens only through NDA-gated data rooms after the company approves
+      your request, and proposals are delivered directly to the business's owners.</p>`;
+
+    document.getElementById("edit-mandate")?.addEventListener("click", async (e) => {
+      e.preventDefault();
+      await supabase.from("investor_mandates").delete().eq("user_id", session.user.id);
+      location.href = "/app/invest?setup=1";
+    });
+
+    document.getElementById("feed").addEventListener("click", async (e) => {
+      const btn = e.target.closest("button[data-act]");
+      if (!btn) return;
+      const id = btn.closest(".deal").dataset.id;
+      btn.disabled = true;
+      if (btn.dataset.act === "watch") {
+        if (watched.has(id)) { await unwatchCompany(id); watched.delete(id); btn.textContent = "Add to watchlist"; }
+        else { await watchCompany(id); watched.add(id); btn.textContent = "✓ On watchlist"; }
+        btn.disabled = false;
+        track("watchlist_toggled", {});
+      } else {
+        const { error } = await requestAccess(id);
+        if (error) { alert(error.message); btn.disabled = false; return; }
+        btn.outerHTML = `<span class="chip gold">Access requested</span>`;
+        track("access_requested", {});
+      }
+    });
+  }
+}
+</script>
+</body>
+</html>

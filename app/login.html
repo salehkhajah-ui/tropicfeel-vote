@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sign in — Smart Money</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/style.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%232fd48a'/><text x='50' y='70' font-size='60' text-anchor='middle' font-family='monospace' font-weight='bold' fill='%2305261a'>S</text></svg>">
+</head>
+<body data-page="app">
+
+<main class="wrap" style="max-width:460px">
+  <div class="page-head" style="padding-bottom:16px">
+    <h1 id="title">Claim your company</h1>
+    <p id="subtitle">Create an account to build your economic profile, publish opportunity
+      signals, and see the deals the graph manufactures for you.</p>
+  </div>
+
+  <div class="card">
+    <div id="alert" style="display:none" class="disclaimer"></div>
+
+    <form id="form" style="display:grid;gap:14px;margin-top:4px">
+      <label id="name-field">
+        <div class="panel-title" style="margin-bottom:6px">Your name</div>
+        <input type="text" id="full_name" autocomplete="name" style="width:100%">
+      </label>
+      <label>
+        <div class="panel-title" style="margin-bottom:6px">Work email</div>
+        <input type="email" id="email" required autocomplete="email" style="width:100%">
+      </label>
+      <label>
+        <div class="panel-title" style="margin-bottom:6px">Password</div>
+        <input type="password" id="password" required minlength="8" autocomplete="current-password" style="width:100%">
+        <div class="faint" style="font-size:12px;margin-top:6px" id="pwhint">At least 8 characters.</div>
+      </label>
+      <button class="btn btn-primary" id="submit" type="submit" style="justify-content:center">Create account</button>
+    </form>
+
+    <hr class="hr">
+    <p class="dim" style="font-size:14px">
+      <span id="switch-text">Already have an account?</span>
+      <a class="blue" href="#" id="switch">Sign in instead</a>
+    </p>
+  </div>
+
+  <p class="faint" style="margin-top:18px;font-size:12.5px">
+    Smart Money is an intelligence platform. Creating an account does not make an offer of
+    securities, and nothing on the platform is investment advice.
+  </p>
+</main>
+
+<script src="/assets/common.js"></script>
+<script type="module">
+import { supabase, getSession } from "/assets/supabase.js";
+
+const qs = new URLSearchParams(location.search);
+const next = qs.get("next") || "/app";
+let mode = qs.get("mode") === "signin" ? "signin" : "signup";
+
+const $ = (id) => document.getElementById(id);
+const alertBox = $("alert");
+
+function show(msg, tone = "red") {
+  alertBox.style.display = "block";
+  alertBox.style.borderColor = tone === "red" ? "var(--red)" : "var(--green)";
+  alertBox.innerHTML = `<span class="${tone}">${msg}</span>`;
+}
+
+function render() {
+  const signup = mode === "signup";
+  $("title").textContent = signup ? "Claim your company" : "Welcome back";
+  $("subtitle").textContent = signup
+    ? "Create an account to build your economic profile, publish opportunity signals, and see the deals the graph manufactures for you."
+    : "Sign in to your Smart Money console.";
+  $("submit").textContent = signup ? "Create account" : "Sign in";
+  $("name-field").style.display = signup ? "block" : "none";
+  $("pwhint").style.display = signup ? "block" : "none";
+  $("password").setAttribute("autocomplete", signup ? "new-password" : "current-password");
+  $("switch-text").textContent = signup ? "Already have an account?" : "New to Smart Money?";
+  $("switch").textContent = signup ? "Sign in instead" : "Create an account";
+  alertBox.style.display = "none";
+}
+
+$("switch").onclick = (e) => {
+  e.preventDefault();
+  mode = mode === "signup" ? "signin" : "signup";
+  render();
+};
+
+// already signed in? go straight through
+if (await getSession()) location.replace(next);
+render();
+
+$("form").onsubmit = async (e) => {
+  e.preventDefault();
+  const btn = $("submit");
+  const label = btn.textContent;
+  btn.disabled = true;
+  // supabase-js retries failed network calls internally, so this can take a few
+  // seconds — say so rather than leaving a dead button.
+  btn.textContent = mode === "signup" ? "Creating account…" : "Signing in…";
+  const email = $("email").value.trim();
+  const password = $("password").value;
+
+  try {
+    if (mode === "signup") {
+      const { data, error } = await supabase.auth.signUp({
+        email, password,
+        options: { data: { full_name: $("full_name").value.trim() } },
+      });
+      if (error) throw error;
+      if (!data.session) {
+        show("Check your inbox to confirm your email address, then sign in.", "green");
+        mode = "signin";
+        setTimeout(render, 2500);
+        return;
+      }
+    } else {
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) throw error;
+    }
+    location.replace(next);
+  } catch (err) {
+    show(err.message || "Something went wrong. Please try again.");
+  } finally {
+    btn.disabled = false;
+    btn.textContent = label;
+  }
+};
+</script>
+</body>
+</html>

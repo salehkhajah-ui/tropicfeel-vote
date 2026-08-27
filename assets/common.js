@@ -1,82 +1,136 @@
-/* Smart Money — shared chrome (nav + footer) and UI helpers */
+/* Smart Money — shared chrome (nav + footer), bilingual EN/AR */
 (function () {
   const page = document.body.dataset.page || "";
-  const isAr = document.documentElement.lang === "ar";
+  const ar = document.documentElement.lang === "ar";
+  const home = ar ? "/ar" : "/";
 
-  const T = isAr ? {
-    companies: "الشركات", graph: "الخريطة الاقتصادية", vision: "الرؤية",
-    valuation: "قيّم شركتك", pricing: "الأسعار", demo: "جرّب المنصة ↗", langLink: '<a href="/" lang="en" dir="ltr">English</a>',
-    home: "/ar", visionHref: "/ar#vision",
-    tagline: "ننظّم الاقتصاد الخاص في العالم — بدءاً من الكويت والخليج.",
-    demoNote: "موقع تجريبي — جميع الشركات والأرقام خيالية.",
-    product: "المنتج", company: "الشركة",
-    fLinks1: [["/pricing", "الأسعار"], ["/get-started", "قيّم شركتك"], ["/companies", "دليل الشركات"], ["/graph", "الخريطة الاقتصادية"], ["/dashboard", "لوحة الفرص"]],
-    fLinks2: [["/ar#vision", "الرؤية"], ["/ar#phases", "خارطة الطريق"], ["/ar#model", "نموذج العمل"]],
-    disclaimer: "<strong>تنويه مهم:</strong> تقييمات ودرجات وتقديرات سمارت موني هي مخرجات نماذج ذكاء اصطناعي لغرض دعم القرار فقط، وليست تقييمات معتمدة أو استشارات استثمارية أو عروضاً لأوراق مالية. المنصة لا تُسهّل بيع أو شراء الحصص؛ ويتم التعريف بالمستثمرين حصراً عبر غرف بيانات موثّقة الوصول، وأي تسهيل مستقبلي للمعاملات سيتم فقط عبر شركاء مرخّصين وخاضعين للرقابة وبما يتوافق مع أنظمة الأوراق المالية ومكافحة غسل الأموال والتحقق من الهوية."
+  // link to the same page in the other language. The /app section is English-only
+  // for now, so it gets no switcher rather than a link to a page that isn't there.
+  const bilingual = page !== "app";
+  const hasArTwin = !["get-started"].includes(page);
+  const otherLangHref = !hasArTwin ? "/ar" : ar
+    ? (location.pathname.replace(/^\/ar\/?/, "/") + location.search + location.hash)
+    : ("/ar" + (location.pathname === "/" ? "" : location.pathname) + location.search + location.hash);
+
+  const t = ar ? {
+    brand: "سمارت موني",
+    companies: "الشركات", graph: "الشبكة الاقتصادية", vision: "الرؤية",
+    model: "نموذج العمل", demo: "العرض الحي ↗", lang: "English",
+    visionHref: "/ar#vision", modelHref: "/ar#model",
+    companiesHref: "/ar/companies", graphHref: "/ar/graph", dashHref: "/ar/dashboard",
+    investors: "المستثمرون", pricing: "الأسعار",
+    investorsHref: "/ar/investors", pricingHref: "/ar/pricing",
+    investorLink: "منصة المستثمر", wizardLink: "قيّم شركتك مجاناً", wizardHref: "/get-started",
+    app: "الدخول",
+    tagline: "ننظّم الاقتصاد الخاص في العالم — بدءًا من الكويت والخليج.",
+    copyright: `© ${new Date().getFullYear()} سمارت موني. موقع تجريبي — جميع الشركات والأرقام افتراضية.`,
+    product: "المنتج", dirLink: "دليل الشركات", graphLink: "الشبكة الاقتصادية", dashLink: "لوحة الفرص",
+    companyCol: "الشركة", visionLink: "الرؤية", roadmapLink: "خارطة الطريق", modelLink: "نموذج العمل",
+    roadmapHref: "/ar#phases",
+    discTitle: "تنبيه مهم:",
+    disc: "تقييمات سمارت موني ودرجاتها وتقديرات التآزر فيها هي مخرجات نماذج ذكاء اصطناعي لغرض دعم القرار فقط، وليست تقييمات معتمدة ولا نصيحة استثمارية ولا عرضًا لأوراق مالية. لا تتيح المنصة شراء أو بيع الأسهم؛ ويجري التعريف بالمستثمرين حصرًا عبر غرف بيانات بوصول موثّق، وأي تسهيل مستقبلي للمعاملات سيتم فقط عبر شركاء مرخّصين وخاضعين للرقابة، وبما يتوافق مع متطلبات الأوراق المالية ومكافحة غسل الأموال والتحقق من هوية العملاء."
   } : {
+    brand: "Smart Money",
     companies: "Companies", graph: "Economic Graph", vision: "Vision",
-    valuation: "Get Your Valuation", pricing: "Pricing", demo: "Live Demo ↗", langLink: '<a href="/ar" lang="ar" dir="rtl">عربي</a>',
-    home: "/", visionHref: "/#vision",
+    model: "Business Model", demo: "Live Demo ↗", lang: "العربية",
+    visionHref: "/#vision", modelHref: "/#model",
+    companiesHref: "/companies", graphHref: "/graph", dashHref: "/dashboard",
+    investors: "Investors", pricing: "Pricing",
+    investorsHref: "/investors", pricingHref: "/pricing",
+    investorLink: "Investor Terminal", wizardLink: "Get Your Free Valuation", wizardHref: "/get-started",
+    app: "Sign in",
     tagline: "Organizing the world's private economy — starting with Kuwait and the GCC.",
-    demoNote: "Demonstration site — all companies and figures are fictional.",
-    product: "Product", company: "Company",
-    fLinks1: [["/pricing", "Pricing"], ["/get-started", "Get Your Valuation"], ["/companies", "Company Directory"], ["/graph", "Economic Graph"], ["/dashboard", "Opportunity Dashboard"]],
-    fLinks2: [["/#vision", "Vision"], ["/#phases", "Roadmap"], ["/#model", "Business Model"]],
-    disclaimer: "<strong>Important:</strong> Smart Money valuations, scores, and synergy estimates are AI model outputs intended for decision support only. They are not certified appraisals, investment advice, or offers of securities. The platform does not facilitate the purchase or sale of equity; introductions to investors occur only through verified-access data rooms, and any future transaction facilitation would occur solely through licensed, regulated partners in compliance with applicable securities, AML, and KYC requirements."
+    copyright: `© ${new Date().getFullYear()} Smart Money. Demonstration site — all companies and figures are fictional.`,
+    product: "Product", dirLink: "Company Directory", graphLink: "Economic Graph", dashLink: "Opportunity Dashboard",
+    companyCol: "Company", visionLink: "Vision", roadmapLink: "Roadmap", modelLink: "Business Model",
+    roadmapHref: "/#phases",
+    discTitle: "Important:",
+    disc: "Smart Money valuations, scores, and synergy estimates are AI model outputs intended for decision support only. They are not certified appraisals, investment advice, or offers of securities. The platform does not facilitate the purchase or sale of equity; introductions to investors occur only through verified-access data rooms, and any future transaction facilitation would occur solely through licensed, regulated partners in compliance with applicable securities, AML, and KYC requirements."
   };
 
   const nav = document.createElement("header");
   nav.className = "nav";
   nav.innerHTML = `
     <div class="nav-inner">
-      <a class="brand" href="${T.home}">
+      <a class="brand" href="${home}">
         <span class="brand-mark">S</span>
-        <span>Smart&nbsp;Money</span>
+        <span>${t.brand}</span>
       </a>
       <button class="nav-toggle" aria-label="Menu" aria-expanded="false">☰</button>
       <nav class="nav-links">
-        <a href="/companies" class="${page === "companies" ? "active" : ""}">${T.companies}</a>
-        <a href="/graph" class="${page === "graph" ? "active" : ""}">${T.graph}</a>
-        <a href="${T.visionHref}">${T.vision}</a>
-        <a href="/get-started" class="${page === "get-started" ? "active" : ""}">${T.valuation}</a>
-        <a href="/pricing" class="${page === "pricing" ? "active" : ""}">${T.pricing}</a>
-        <span class="lang-link">${T.langLink}</span>
-        <a href="/dashboard" class="cta ${page === "dashboard" ? "active" : ""}">${T.demo}</a>
+        <a href="${t.companiesHref}" class="${page === "companies" ? "active" : ""}">${t.companies}</a>
+        <a href="${t.graphHref}" class="${page === "graph" ? "active" : ""}">${t.graph}</a>
+        <a href="${t.investorsHref}" class="${page === "investors" ? "active" : ""}">${t.investors}</a>
+        <a href="${t.pricingHref}" class="${page === "pricing" ? "active" : ""}">${t.pricing}</a>
+        <a href="/app" class="${page === "app" ? "active" : ""}">${t.app}</a>
+        ${bilingual ? `<a href="${otherLangHref}" class="lang-switch" lang="${ar ? "en" : "ar"}" dir="${ar ? "ltr" : "rtl"}">${t.lang}</a>` : ""}
+        <a href="${t.dashHref}" class="cta ${page === "dashboard" ? "active" : ""}">${t.demo}</a>
       </nav>
     </div>`;
+  // Signed in? The "Sign in" link becomes the account name (still leads to /app).
+  // The supabase-js session lives in localStorage; read it without loading the SDK.
+  try {
+    const key = Object.keys(localStorage).find((k) => /^sb-.+-auth-token$/.test(k));
+    const raw = key && localStorage.getItem(key);
+    if (raw) {
+      const s = JSON.parse(raw.startsWith("base64-") ? atob(raw.slice(7)) : raw);
+      const u = s?.user;
+      if (u?.email) {
+        const name = u.user_metadata?.full_name || u.email.split("@")[0];
+        const link = nav.querySelector('a[href="/app"]');
+        link.textContent = "👤 " + name;
+        link.title = u.email;
+      }
+    }
+  } catch { /* treat as signed out */ }
   document.body.prepend(nav);
 
-  const toggle = nav.querySelector(".nav-toggle");
-  const links = nav.querySelector(".nav-links");
-  toggle.addEventListener("click", () => {
-    const open = links.classList.toggle("open");
-    toggle.setAttribute("aria-expanded", open);
-    toggle.textContent = open ? "✕" : "☰";
+  const navToggle = nav.querySelector(".nav-toggle");
+  const navLinks = nav.querySelector(".nav-links");
+  navToggle.addEventListener("click", () => {
+    const open = navLinks.classList.toggle("open");
+    navToggle.setAttribute("aria-expanded", open);
+    navToggle.textContent = open ? "✕" : "☰";
   });
-  links.addEventListener("click", () => { links.classList.remove("open"); toggle.textContent = "☰"; });
+  navLinks.addEventListener("click", () => { navLinks.classList.remove("open"); navToggle.textContent = "☰"; });
+
+  // scroll edge effect: .nav shows its divider/shadow only once content
+  // actually scrolls under the floating bar
+  const navEdge = () => nav.classList.toggle("scrolled", window.scrollY > 4);
+  window.addEventListener("scroll", navEdge, { passive: true });
+  navEdge();
 
   const footer = document.createElement("footer");
   footer.className = "site";
   footer.innerHTML = `
     <div class="wrap">
       <div style="max-width:420px">
-        <div class="brand" style="margin-bottom:10px"><span class="brand-mark">S</span> Smart Money</div>
-        <p>${T.tagline}</p>
-        <p style="margin-top:14px" class="faint">© ${new Date().getFullYear()} Smart Money. ${T.demoNote}</p>
+        <div class="brand" style="margin-bottom:10px"><span class="brand-mark">S</span> ${t.brand}</div>
+        <p>${t.tagline}</p>
+        <p style="margin-top:14px" class="faint">${t.copyright}</p>
       </div>
       <div style="display:flex;gap:48px;flex-wrap:wrap">
         <div>
-          <div class="panel-title">${T.product}</div>
-          ${T.fLinks1.map(([h, t]) => `<p><a href="${h}">${t}</a></p>`).join("")}
+          <div class="panel-title">${t.product}</div>
+          <p><a href="${t.companiesHref}">${t.dirLink}</a></p>
+          <p><a href="${t.graphHref}">${t.graphLink}</a></p>
+          <p><a href="${t.dashHref}">${t.dashLink}</a></p>
+          <p><a href="${t.investorsHref}">${t.investorLink}</a></p>
+          <p><a href="${t.wizardHref}">${t.wizardLink}</a></p>
         </div>
         <div>
-          <div class="panel-title">${T.company}</div>
-          ${T.fLinks2.map(([h, t]) => `<p><a href="${h}">${t}</a></p>`).join("")}
+          <div class="panel-title">${t.companyCol}</div>
+          <p><a href="${t.visionHref}">${t.visionLink}</a></p>
+          <p><a href="${t.roadmapHref}">${t.roadmapLink}</a></p>
+          <p><a href="${t.modelHref}">${t.modelLink}</a></p>
+          <p><a href="${t.pricingHref}">${t.pricing}</a></p>
         </div>
       </div>
     </div>
     <div class="wrap" style="margin-top:28px">
-      <div class="disclaimer" style="width:100%">${T.disclaimer}</div>
+      <div class="disclaimer" style="width:100%">
+        <strong>${t.discTitle}</strong> ${t.disc}
+      </div>
     </div>`;
   document.body.append(footer);
 
@@ -91,7 +145,7 @@
     toastEl.innerHTML = `<span>${msg}</span>`;
     if (opts.undo) {
       const b = document.createElement("button");
-      b.textContent = isAr ? "تراجع" : "Undo";
+      b.textContent = ar ? "تراجع" : "Undo";
       b.onclick = () => { toastEl.classList.remove("show"); opts.undo(); };
       toastEl.append(b);
     }
@@ -99,7 +153,7 @@
     toastTimer = setTimeout(() => toastEl.classList.remove("show"), opts.undo ? 6000 : 3200);
   };
 
-  /* ---- per-browser demo state (approve/dismiss decisions) ---- */
+  /* ---- per-browser demo state (approve/dismiss decisions on demo pages) ---- */
   window.smState = {
     get() { try { return JSON.parse(localStorage.getItem("sm-actions") || "{}"); } catch { return {}; } },
     set(id, val) {
