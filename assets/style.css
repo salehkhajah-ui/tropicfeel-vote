@@ -472,3 +472,72 @@ html[lang="ar"] .rung .n, html[lang="ar"] .rung .tag { font-family: "Tajawal", s
 .price-card li::before { content: "✓"; position: absolute; left: 0; color: var(--green); font-weight: 700; }
 .price-card li.na { opacity: .45; }
 .price-card li.na::before { content: "—"; color: var(--text-faint); }
+
+/* ============================================================
+   Light "Apple" treatment — marketing pages only (body.light).
+   Product pages (dashboard, company, companies, graph) stay on
+   the dark terminal theme. Same components, remapped tokens.
+   ============================================================ */
+body.light {
+  --bg: #ffffff;
+  --bg-2: #f5f5f7;
+  --bg-3: #e8e8ed;
+  --panel: #ffffff;
+  --panel-2: #f5f5f7;
+  --line: rgba(29, 29, 31, 0.09);
+  --line-strong: rgba(29, 29, 31, 0.2);
+  --text: #1d1d1f;
+  --text-dim: #55565c;
+  --text-faint: #86868b;
+  --green: #0d8a56;
+  --green-soft: rgba(13, 138, 86, 0.09);
+  --gold: #9c7115;
+  --gold-soft: rgba(176, 132, 33, 0.13);
+  --red: #c73e56;
+  --red-soft: rgba(199, 62, 86, 0.09);
+  --blue: #0071e3;
+  --blue-soft: rgba(0, 113, 227, 0.08);
+  --violet: #6e56cf;
+  --violet-soft: rgba(110, 86, 207, 0.09);
+  background: var(--bg);
+  color: var(--text);
+}
+
+/* chrome */
+body.light .nav { background: rgba(255, 255, 255, 0.82); }
+body.light .nav-links a.cta { color: #ffffff; }
+body.light .nav-links a.cta:hover { background: #0fa365; color: #ffffff; }
+body.light .btn-primary { color: #ffffff; }
+body.light .btn-primary:hover { background: #0fa365; }
+body.light .ticker-shell { background: var(--bg-2); }
+body.light ::selection { background: rgba(13, 138, 86, 0.16); }
+
+/* soft-shadow cards instead of glowing borders */
+body.light .card, body.light .feature, body.light .stat, body.light .opp,
+body.light .price-card, body.light .phase, body.light .rung {
+  box-shadow: 0 6px 26px rgba(29, 29, 31, 0.07);
+  border-color: rgba(29, 29, 31, 0.06);
+}
+body.light .price-card.hot {
+  background: linear-gradient(165deg, #ffffff, #edf9f3);
+  border-color: rgba(13, 138, 86, 0.32);
+}
+
+/* airy Apple-flavored spacing & type */
+body.light .hero { padding: 112px 0 86px; }
+body.light .hero h1 { letter-spacing: -0.03em; }
+body.light .hero::before {
+  background:
+    radial-gradient(640px 340px at 75% 18%, rgba(13, 138, 86, 0.09), transparent 65%),
+    radial-gradient(520px 300px at 15% 8%, rgba(0, 113, 227, 0.06), transparent 65%);
+}
+body.light .section { padding: 84px 0; }
+body.light .quote-band { padding: 104px 24px; }
+body.light .page-head { padding: 64px 0 30px; }
+body.light h1, body.light h2 { font-weight: 700; }
+
+/* light-safe forms */
+body.light input[type=text], body.light input[type=search], body.light select {
+  background: #ffffff; border-color: var(--line-strong); color: var(--text);
+}
+body.light .disclaimer { background: var(--bg-2); }
