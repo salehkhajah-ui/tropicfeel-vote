@@ -9,6 +9,20 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/assets/style.css">
+<style>
+  .whatis {
+    background: var(--bg-2); border: 1px solid var(--line); border-radius: 10px;
+    padding: 12px 15px; font-size: 13px; color: var(--text-dim); margin-top: 14px; line-height: 1.55;
+  }
+  .whatis b { color: var(--text); }
+  .whatis .q { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--green); display: block; margin-bottom: 5px; }
+  .example {
+    background: var(--green-soft); border-radius: 10px; padding: 12px 15px;
+    font-size: 13px; color: var(--text-dim); margin-top: 10px; line-height: 1.55;
+  }
+  .example .q { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--green); display: block; margin-bottom: 5px; }
+  .example b { color: var(--green); }
+</style>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%232fd48a'/><text x='50' y='70' font-size='60' text-anchor='middle' font-family='monospace' font-weight='bold' fill='%2305261a'>S</text></svg>">
 </head>
 <body data-page="pricing">
@@ -18,9 +32,9 @@
     <div class="section-kicker">The Deal Engine</div>
     <h1>Try everything first. Pay when it works.</h1>
     <p style="margin-left:auto;margin-right:auto;max-width:580px">
-      The economic graph is free forever, and your first introductions are on us.
-      We only earn real money <b>after</b> the platform has put real money on your table —
-      that's the whole business model.
+      Joining is free. Using the platform is free. Your first introductions are free.
+      You only ever pay <b>after</b> Smart Money has shown you real value — and every
+      price below is small compared to the value it unlocks.
     </p>
   </div>
 
@@ -30,8 +44,8 @@
       <div style="flex:1;min-width:260px">
         <div class="panel-title" style="color:var(--gold)">Founding Members · first 500 companies</div>
         <p style="font-size:15px">Join now and lock in for life: <b class="gold">free verification onboarding</b>,
-        <b class="gold">6 free introductions</b>, and <b class="gold">6 months of Premium free</b> —
-        plus founding pricing on everything, forever.</p>
+        <b class="gold">10 free introductions</b>, and <b class="gold">6 months of Premium free</b> —
+        plus founding prices on everything, forever.</p>
       </div>
       <a class="btn btn-primary" href="/get-started">Claim a founding spot →</a>
     </div>
@@ -42,75 +56,93 @@
     <div class="price-card">
       <div class="tier">Free · forever</div>
       <div class="amount">0 KD</div>
-      <p class="dim" style="font-size:13.5px">Everything you need to see the value.</p>
+      <p class="dim" style="font-size:13.5px">The full platform, for every company.</p>
       <ul>
         <li>Full economic profile</li>
         <li>AI valuation range</li>
         <li>Daily opportunity feed &amp; AI matches</li>
         <li>Publish signals &amp; list idle assets</li>
         <li>Economic graph access</li>
-        <li><b class="green">First 3 introductions free</b></li>
+        <li><b class="green">First 5 introductions free</b></li>
         <li>Benchmarks preview</li>
       </ul>
-      <a class="btn btn-ghost" href="/get-started" style="justify-content:center">Start free →</a>
+      <div class="whatis"><span class="q">What is this?</span>
+        Your company's page, its estimated value, and the deals the AI finds for you —
+        all free, forever, with no card and no trial clock. This is how you see the
+        benefit before spending anything.</div>
+      <a class="btn btn-ghost" href="/get-started" style="justify-content:center;margin-top:14px">Start free →</a>
     </div>
 
     <div class="price-card hot">
-      <div class="tier" style="color:var(--green)">Verified · the trust layer</div>
-      <div class="amount">149 KD <small>/ year</small></div>
-      <p class="dim" style="font-size:13.5px">Launch price (regular 299) · onboarding audit <b class="gold">free for founding members</b>.</p>
+      <div class="tier" style="color:var(--green)">Verified · the trust badge</div>
+      <div class="amount">99 KD <small>/ year</small></div>
+      <p class="dim" style="font-size:13.5px">That's ~8 KD a month. Onboarding audit <b class="gold">free for founding members</b>.</p>
       <ul>
         <li>Everything in Free</li>
-        <li><b class="green">VERIFIED</b> badge on your metrics</li>
+        <li><b class="green">VERIFIED</b> badge on your numbers</li>
         <li>Valuation range tightened ~20–30%</li>
         <li>Priority in AI matching</li>
-        <li>Eligible for bank sponsorship — <b>your fee refunded</b> when a sponsor covers you</li>
+        <li>Fee <b>refunded</b> when a bank sponsors you</li>
         <li>Data-room ready for investor access</li>
       </ul>
-      <a class="btn btn-primary" href="/get-started" style="justify-content:center">Get verified →</a>
+      <div class="whatis"><span class="q">What is this?</span>
+        An independent audit partner confirms your key numbers, and your profile gets a
+        <b>VERIFIED</b> badge. Verified companies are trusted more, matched first, and
+        shown to investors — it's the difference between saying your numbers and proving them.</div>
+      <a class="btn btn-primary" href="/get-started" style="justify-content:center;margin-top:14px">Get verified →</a>
     </div>
 
     <div class="price-card">
-      <div class="tier">Premium · intelligence</div>
-      <div class="amount">29 KD <small>/ month</small></div>
-      <p class="dim" style="font-size:13.5px">Launch price (regular 49) · <b class="gold">first 6 months free</b> for founding members.</p>
+      <div class="tier">Premium · the power tools</div>
+      <div class="amount">15 KD <small>/ month</small></div>
+      <p class="dim" style="font-size:13.5px">Cancel anytime · <b class="gold">first 6 months free</b> for founding members.</p>
       <ul>
         <li>Everything in Verified</li>
-        <li>Full benchmarking &amp; capital-allocation AI</li>
+        <li>Full benchmarking vs your sector</li>
+        <li>Capital-allocation AI insights</li>
         <li>Industry reports &amp; market trends</li>
         <li><b>Unlimited introductions included</b></li>
         <li>Multi-user seats</li>
-        <li>Cancel anytime — no contracts</li>
       </ul>
-      <a class="btn btn-ghost" href="/dashboard" style="justify-content:center">Try it in the demo →</a>
+      <div class="whatis"><span class="q">What is this?</span>
+        The advanced intelligence: how you compare to your sector, where your capital is
+        stuck, and unlimited introductions. 15 KD a month — one insight like
+        “cut receivable days and free 400,000 KD” pays for a lifetime of it.</div>
+      <a class="btn btn-ghost" href="/dashboard" style="justify-content:center;margin-top:14px">Try it in the demo →</a>
     </div>
   </div>
 
   <!-- ============ ACTION & OUTCOME ============ -->
   <div class="section-kicker" style="margin-top:56px">Pay per result — never per promise</div>
-  <h2 style="font-size:26px">The action and outcome layers</h2>
+  <h2 style="font-size:26px">Introductions and success fees, explained simply</h2>
   <div class="grid grid-2" style="margin-top:22px">
     <div class="card">
-      <div class="panel-title">Introductions — the action layer</div>
+      <div class="panel-title">Introductions — meeting the right company</div>
       <div style="font-family:var(--font-display);font-size:28px;font-weight:700">
-        First 3 free<span class="dim" style="font-size:15px;font-weight:500"> · then 25 KD per accepted introduction</span></div>
+        First 5 free<span class="dim" style="font-size:15px;font-weight:500"> · then 10 KD per accepted introduction</span></div>
       <ul style="list-style:none;margin-top:14px;display:grid;gap:8px;font-size:14px" class="dim">
-        <li>✓ Every company's <b class="green">first 3 introductions cost nothing</b> — see the value before paying a fils</li>
-        <li>✓ Charged only when <b>both sides accept</b></li>
-        <li>✓ Refunded automatically if the meeting doesn't happen</li>
-        <li>✓ <b class="gold">Fully deducted from any later success fee</b> on the same deal</li>
-        <li>✓ Unlimited and included for Premium members</li>
+        <li>✓ Every company's <b class="green">first 5 introductions are free</b></li>
+        <li>✓ You pay only when <b>both sides say yes</b> to meeting</li>
+        <li>✓ Money back automatically if the meeting doesn't happen</li>
+        <li>✓ <b class="gold">Counted off any later success fee</b> on the same deal</li>
+        <li>✓ Free and unlimited for Premium members</li>
       </ul>
-      <p class="faint" style="font-size:12.5px;margin-top:12px">25 KD is less than a business lunch — for a meeting the AI already matched to your needs.</p>
+      <div class="whatis"><span class="q">What is this?</span>
+        When the AI finds a company that needs exactly what you have (or has what you need),
+        you can ask to be introduced. 10 KD — the price of a lunch — gets you a meeting that
+        was matched on real data, not a cold call.</div>
+      <div class="example"><span class="q">Example</span>
+        The AI matches you with a company that needs your idle warehouse space. You use a free
+        introduction, meet, and agree a lease. The introduction cost you <b>0 KD</b>.</div>
     </div>
     <div class="card">
-      <div class="panel-title">Success fees — the outcome layer</div>
+      <div class="panel-title">Success fees — a small share, only when a deal closes</div>
       <div style="display:grid;gap:12px;margin-top:6px">
         <div style="display:flex;justify-content:space-between;gap:12px;border-bottom:1px solid var(--line);padding-bottom:10px">
-          <span>Partnerships, capacity &amp; asset deals</span><span class="mono green">4% <span class="faint">of first-year value</span></span>
+          <span>Partnerships, capacity &amp; asset deals</span><span class="mono green">3% <span class="faint">of first-year value</span></span>
         </div>
         <div style="display:flex;justify-content:space-between;gap:12px;border-bottom:1px solid var(--line);padding-bottom:10px">
-          <span>Investments, stake sales &amp; M&amp;A</span><span class="mono green">2% <span class="faint">of deal value</span></span>
+          <span>Investments, stake sales &amp; M&amp;A</span><span class="mono green">1.5% <span class="faint">of deal value</span></span>
         </div>
         <div style="display:flex;justify-content:space-between;gap:12px;border-bottom:1px solid var(--line);padding-bottom:10px">
           <span>Your first closed deal on the platform</span><span class="mono gold">half fee</span>
@@ -119,28 +151,49 @@
           <span>Deal closed without our introduction</span><span class="mono">0%</span>
         </div>
       </div>
-      <p class="faint" style="font-size:12.5px;margin-top:14px">You only ever pay a success fee after new money is already on your table — and your first one is half price. M&amp;A and investment fees are structured through licensed, regulated partners.</p>
+      <div class="whatis"><span class="q">What is this?</span>
+        If a deal that started with our introduction actually closes, we take a small
+        percentage — <b>after</b> the money is on your table, never before. If no deal
+        closes, you owe nothing. If you found the deal yourself, you owe nothing.</div>
+      <div class="example"><span class="q">Example</span>
+        Through Smart Money you sign a partnership worth 40,000 KD in its first year.
+        Normally the fee is 3% = 1,200 KD; as your first deal it's half — <b>600 KD</b>,
+        paid only after the contract is signed. You keep 39,400 KD of new business.</div>
     </div>
   </div>
 
   <!-- ============ INSTITUTIONS ============ -->
-  <div class="section-kicker" style="margin-top:56px">For banks &amp; institutions</div>
+  <div class="section-kicker" style="margin-top:56px">For banks &amp; deal professionals</div>
   <h2 style="font-size:26px">They pay to find you — you never pay to be found</h2>
+  <p class="dim" style="max-width:640px;margin-top:8px;font-size:14.5px">
+    Banks, investors, law firms, and auditors spend fortunes searching for good SME clients.
+    Smart Money is where those clients already are — so the institutions pay, and companies don't.
+  </p>
   <div class="grid grid-3" style="margin-top:22px">
     <div class="card">
-      <h3>Ecosystem seat</h3>
-      <div style="font-family:var(--font-display);font-size:24px;font-weight:700;margin:6px 0">750 KD <span class="dim" style="font-size:14px">/ month</span></div>
-      <p class="dim" style="font-size:13.5px">For banks, PE, family offices, law and audit firms: qualified deal flow, sector screens, and readiness-scored targets. First month free.</p>
+      <h3>Deal-flow membership</h3>
+      <div style="font-family:var(--font-display);font-size:24px;font-weight:700;margin:6px 0">500 KD <span class="dim" style="font-size:14px">/ month</span></div>
+      <p class="dim" style="font-size:13.5px">First month free.</p>
+      <div class="whatis"><span class="q">What is this?</span>
+        A subscription for banks, private-equity firms, family offices, and law/audit firms.
+        They see which companies match what they're looking for — verified, scored, and
+        <b>only those that chose to be visible</b>. Cheaper than one junior analyst's week.</div>
     </div>
     <div class="card">
       <h3>Qualified introduction</h3>
-      <div style="font-family:var(--font-display);font-size:24px;font-weight:700;margin:6px 0">150 KD <span class="dim" style="font-size:14px">each</span></div>
-      <p class="dim" style="font-size:13.5px">Double-opt-in introductions to companies matching your mandate — always with the company's consent, never a data sale.</p>
+      <div style="font-family:var(--font-display);font-size:24px;font-weight:700;margin:6px 0">100 KD <span class="dim" style="font-size:14px">each</span></div>
+      <div class="whatis"><span class="q">What is this?</span>
+        When an institution wants to meet a specific company, it pays per introduction —
+        and the meeting happens <b>only if the company agrees first</b>. Your data is never
+        sold; you simply receive an invitation you can accept or ignore.</div>
     </div>
     <div class="card" style="background:linear-gradient(160deg,var(--panel),#12251c)">
       <h3>Sponsorship program</h3>
-      <div style="font-family:var(--font-display);font-size:24px;font-weight:700;margin:6px 0" class="green">Partner with us</div>
-      <p class="dim" style="font-size:13.5px">Sponsor verification and access for your SME clients as a financing-origination channel — sponsored companies pay nothing. Institutional licenses for SME funds and chambers also available.</p>
+      <div style="font-family:var(--font-display);font-size:24px;font-weight:700;margin:6px 0" class="green">Banks pay for you</div>
+      <div class="whatis" style="background:rgba(10,15,28,.5)"><span class="q">What is this?</span>
+        A bank can sponsor its SME clients on Smart Money — covering their verification and
+        access — because verified, growing companies are exactly who banks want to finance.
+        If a sponsor covers you, <b>your fees drop to zero</b>.</div>
     </div>
   </div>
 
